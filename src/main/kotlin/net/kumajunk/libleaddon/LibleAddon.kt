@@ -1,5 +1,6 @@
 package net.kumajunk.libleaddon
 
+import com.google.gson.JsonObject
 import com.odtheking.odin.OdinMod.logger
 import com.odtheking.odin.OdinMod.mc
 import com.odtheking.odin.OdinMod.scope
@@ -15,6 +16,14 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.kumajunk.libleaddon.commands.profileViewerCommand
 import net.kumajunk.libleaddon.features.impl.dungeon.*
+import net.kumajunk.libleaddon.features.impl.floor7.CoreTime
+import net.kumajunk.libleaddon.features.impl.floor7.CrushTimer
+import net.kumajunk.libleaddon.features.impl.floor7.CrystalNotifier
+import net.kumajunk.libleaddon.features.impl.floor7.PositionNotifier
+import net.kumajunk.libleaddon.features.impl.floor7.PreEnterNotifier
+import net.kumajunk.libleaddon.features.impl.floor7.Predev
+import net.kumajunk.libleaddon.features.impl.floor7.PurplePad
+import net.kumajunk.libleaddon.features.impl.floor7.SimonSaysTimer
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
 import java.net.URI
 import java.net.http.HttpRequest
@@ -44,10 +53,21 @@ object LibleAddon : ClientModInitializer {
                     AutoPotionBag,
                     BloodRushSplit,
                     CalcLagLoss,
+                    ClassDupeNotifier,
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
                     StarMobHighlight,
+
+                    // floor7
+                    CoreTime,
+                    CrushTimer,
+                    CrystalNotifier,
+                    PositionNotifier,
+                    Predev,
+                    PreEnterNotifier,
+                    PurplePad,
+                    SimonSaysTimer,
 
                     // skyblock
                     AutoRefill
@@ -69,12 +89,25 @@ object LibleAddon : ClientModInitializer {
         }
     }
 
-    data class IpInfo(
-        val country: String
-    )
-
     suspend fun isJapanIp(): Boolean {
-        val url = "https://ipapi.co/json/"
+
+        val urls = listOf(
+            "http://ip-api.com/json",
+            "https://ipapi.co/json/",
+            "https://ipinfo.io/json",
+            "https://ipwho.is/"
+        )
+
+        for (url in urls) {
+            val result = checkJapan(url)
+            if (result != null) return result
+        }
+
+        return false
+    }
+
+    private suspend fun checkJapan(url: String): Boolean? {
+
         logger.info("Making request to $url")
 
         val req = HttpRequest.newBuilder()
@@ -85,16 +118,40 @@ object LibleAddon : ClientModInitializer {
             .build()
 
         return runCatching {
+
             val httpClient = WebUtils.createClient()
             val res = httpClient
                 .sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .await()
 
-            val data = gson.fromJson(res.body(), IpInfo::class.java)
-            data.country == "JP"
+            val body = res.body()
+
+            if (!body.trim().startsWith("{")) {
+                throw IllegalStateException("Invalid response: $body")
+            }
+
+            when {
+                url.contains("ip-api") -> {
+                    val json = gson.fromJson(body, JsonObject::class.java)
+                    json["countryCode"]?.asString == "JP"
+                }
+
+                url.contains("ipinfo") -> {
+                    val json = gson.fromJson(body, JsonObject::class.java)
+                    json["country"]?.asString == "JP"
+                }
+
+                url.contains("ipwho") -> {
+                    val json = gson.fromJson(body, JsonObject::class.java)
+                    json["country_code"]?.asString == "JP"
+                }
+
+                else -> false
+            }
+
         }.onFailure {
             logger.warn("Failed to fetch IP country from $url: ${it.message}")
-        }.getOrDefault(false)
+        }.getOrNull()
     }
 
     fun String.toUUID(): UUID {

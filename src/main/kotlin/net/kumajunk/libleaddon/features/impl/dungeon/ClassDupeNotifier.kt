@@ -9,8 +9,8 @@ import com.odtheking.odin.features.Module
 import com.odtheking.odin.utils.*
 import com.odtheking.odin.utils.handlers.schedule
 import com.odtheking.odin.utils.render.textDim
-import com.odtheking.odin.utils.skyblock.dungeon.DungeonClass
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
+import net.kumajunk.libleaddon.utils.ScoreboardUtils.getDungeonPlayerClasses
 import net.kumajunk.libleaddon.utils.addonMessage
 
 object ClassDupeNotifier : Module(
@@ -36,35 +36,33 @@ object ClassDupeNotifier : Module(
 
     var drawHUD = false
 
-    private fun checkDupeClass() : List<DungeonClass> {
-        val clazzList: List<DungeonClass> = DungeonUtils.dungeonTeammates.map { it.clazz }
+    private fun checkDupeClass() : List<String> {
+        val clazzList = getDungeonPlayerClasses().values.map { it.className }
         val counts = clazzList
-            .filter { it != DungeonClass.Unknown }
             .groupingBy { it }
             .eachCount()
+        
         val duplicates = counts.filter { it.value > 1 }.keys.toMutableList()
         if (allowMageDupe.value) {
-            duplicates.remove(DungeonClass.Mage)
+            duplicates.remove("Mage")
         }
-        if (duplicates.isNotEmpty()) {
-            return duplicates
-        }
-        return emptyList()
+        
+        return duplicates
     }
 
     init {
         on<ChatPacketEvent> {
             if (!DungeonUtils.inDungeons) return@on
             val msg = value.noControlCodes
-            if (msg.contains("Starting in") && msg.contains("4")) {
+            if (msg.contains("Starting in") && !msg.contains("1")) {
                 val classes = checkDupeClass()
                 if (classes.isNotEmpty()) {
                     drawHUD = true
                     playSoundSettings(soundSettings())
                     val dupeNames = classes.joinToString(", ")
-                    sendCommand("pc [LA] Duplicate class: $dupeNames")
+                    sendCommand("pc Duplicate class: $dupeNames")
                     addonMessage("§cDuplicate classes detected: §b$dupeNames")
-                    schedule(30) { drawHUD = false}
+                    schedule(20) { drawHUD = false}
                     return@on
                 } else {
                     addonMessage("§aNo duplicate classes found.")

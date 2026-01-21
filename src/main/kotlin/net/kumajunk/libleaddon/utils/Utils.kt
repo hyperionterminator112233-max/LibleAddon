@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 
 fun addonMessage(message: Any?, chatStyle: Style? = null) {
-    val prefix = "§8[§bLA§8] §r"
+    val prefix = "§b[§fLA§b] §r"
     val text = Component.literal("$prefix$message")
     chatStyle?.let { text.setStyle(chatStyle) }
     mc.execute { mc.gui?.chat?.addMessage(text) }
@@ -16,7 +16,7 @@ fun addonMessage(message: Any?, chatStyle: Style? = null) {
  * ホバーイベント等のスタイルを保持したまま表示可能
  */
 fun addonMessage(component: Component) {
-    val prefix = "§8[§bLA§8] §r"
+    val prefix = "§b[§fLA§b] §r"
     val text = Component.literal(prefix).append(component)
     mc.execute { mc.gui?.chat?.addMessage(text) }
 }
