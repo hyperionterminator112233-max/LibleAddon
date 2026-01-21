@@ -43,8 +43,7 @@ loom {
             arrayOf(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
-                "-Ddevauth.account=main",
-                "-XX:+AllowEnhancedClassRedefinition"
+                "-Ddevauth.account=main"
             )
         )
     }

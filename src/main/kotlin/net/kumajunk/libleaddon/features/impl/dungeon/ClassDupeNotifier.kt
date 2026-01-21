@@ -54,9 +54,9 @@ object ClassDupeNotifier : Module(
 
     init {
         on<ChatPacketEvent> {
+            if (!DungeonUtils.inDungeons) return@on
             val msg = value.noControlCodes
             if (msg.contains("Starting in") && msg.contains("4")) {
-                if (!DungeonUtils.inDungeons) return@on
                 val classes = checkDupeClass()
                 if (classes.isNotEmpty()) {
                     drawHUD = true

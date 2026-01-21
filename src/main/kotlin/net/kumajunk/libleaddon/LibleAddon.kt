@@ -3,36 +3,24 @@ package net.kumajunk.libleaddon
 import com.odtheking.odin.OdinMod.logger
 import com.odtheking.odin.OdinMod.mc
 import com.odtheking.odin.OdinMod.scope
-import com.odtheking.odin.OdinMod.version
 import com.odtheking.odin.config.ModuleConfig
 import com.odtheking.odin.events.core.EventBus
 import com.odtheking.odin.features.ModuleManager
 import com.odtheking.odin.utils.network.WebUtils
-import com.odtheking.odin.utils.network.WebUtils.fetchJson
 import com.odtheking.odin.utils.network.WebUtils.gson
-import com.odtheking.odin.utils.network.WebUtils.postData
 import com.odtheking.odin.utils.network.hypixelapi.RequestUtils.getUuid
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
-import net.kumajunk.libleaddon.commands.profileViewerCommand
-import net.kumajunk.libleaddon.features.impl.dungeon.AutoPotionBag
-import net.kumajunk.libleaddon.features.impl.dungeon.BloodRushSplit
-import net.kumajunk.libleaddon.features.impl.dungeon.IllegalMap
-import net.kumajunk.libleaddon.features.impl.dungeon.StarMobHighlight
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
-import net.kumajunk.libleaddon.features.impl.dungeon.CalcLagLoss
-import net.kumajunk.libleaddon.features.impl.dungeon.ClassDupeNotifier
-import net.kumajunk.libleaddon.features.impl.dungeon.LeapAnnounce
-import net.kumajunk.libleaddon.features.impl.dungeon.MaskTimer
-import net.kumajunk.libleaddon.features.impl.dungeon.ScoreMilestone
+import net.kumajunk.libleaddon.commands.profileViewerCommand
+import net.kumajunk.libleaddon.features.impl.dungeon.*
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
-import net.minecraft.world.scores.Score
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 object LibleAddon : ClientModInitializer {
 
@@ -56,7 +44,7 @@ object LibleAddon : ClientModInitializer {
                     AutoPotionBag,
                     BloodRushSplit,
                     CalcLagLoss,
-                    ClassDupeNotifier,
+                    //ClassDupeNotifier,
                     IllegalMap,
                     LeapAnnounce,
                     MaskTimer,
@@ -71,14 +59,8 @@ object LibleAddon : ClientModInitializer {
                 scope.launch {
                     getUuid(name)
                         .onSuccess { uuid ->
-                            playerUUID = UUID.fromString(uuid.id)
+                            playerUUID = uuid.id.toUUID()
                             playerName = name
-                            val data = mapOf(
-                                "mcid" to name,
-                                "uuid" to uuid.id
-                            )
-                            val json = gson.toJson(data)
-                            postData("https://api.kumajunk.net/hypixel/log", json)
                         }
                         .onFailure {
                             println("Failed to get UUID for $name: ${it.message}")
@@ -115,5 +97,18 @@ object LibleAddon : ClientModInitializer {
         }.onFailure {
             logger.warn("Failed to fetch IP country from $url: ${it.message}")
         }.getOrDefault(false)
+    }
+
+    fun String.toUUID(): UUID {
+        val dashed = if (this.contains("-")) {
+            this
+        } else {
+            // 8-4-4-4-12 の位置にハイフンを挿入
+            this.replaceFirst(
+                "(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{12})".toRegex(),
+                "$1-$2-$3-$4-$5"
+            )
+        }
+        return UUID.fromString(dashed)
     }
 }
