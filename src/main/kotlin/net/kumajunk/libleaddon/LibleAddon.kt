@@ -44,8 +44,6 @@ object LibleAddon : ClientModInitializer {
                     AutoPotionBag,
                     BloodRushSplit,
                     CalcLagLoss,
-                    // ClassDupeNotifier,
-                    // IllegalMap,
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
