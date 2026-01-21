@@ -33,12 +33,6 @@ object StarMobHighlight : Module(
     // スター付きモブのエンティティID一覧
     private val starMobs = HashSet<Int>()
 
-    // --- 設定 ---
-    private val useEsp = +BooleanSetting(
-        name = "ESP Mode",
-        default = true,
-        desc = "ON = ESP / OFF = Normal highlight"
-    )
     private val filledOutline = +BooleanSetting(
         name = "Filled Outline",
         default = false,
@@ -181,11 +175,7 @@ object StarMobHighlight : Module(
                     else -> getColor(entity)
                 } ?: continue
 
-                if (useEsp.value) {
-                    drawEntityEsp(entity, color, filledOutline.value)
-                } else {
-                    drawNormalHighlight(entity, color, filledOutline.value)
-                }
+                drawNormalHighlight(entity, color, filledOutline.value)
             }
         }
     }
@@ -285,18 +275,6 @@ object StarMobHighlight : Module(
             }
 
             else -> null
-        }
-    }
-
-    /**
-     * エンティティにESPボックスを描画する。
-     */
-    private fun RenderEvent.Extract.drawEntityEsp(entity: Entity, color: Color, isFilled: Boolean) {
-        val box = entity.boundingBox ?: return
-        drawWireFrameBox(box, color, 2f, false)
-        if (isFilled) {
-            color.withAlpha(0.3f, false)
-            drawFilledBox(box, color, false)
         }
     }
 

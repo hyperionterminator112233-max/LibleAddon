@@ -1,11 +1,11 @@
 package net.kumajunk.libleaddon.features.impl.dungeon.map
 
+import com.odtheking.odin.features.impl.dungeon.DungeonMap
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color
 import com.odtheking.odin.utils.Color.Companion.darker
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.*
-import net.kumajunk.libleaddon.features.impl.dungeon.IllegalMap
 
 class MapRoom(val data: RoomData, val height: Int) {
     val tiles = mutableListOf<Tile>()
@@ -32,22 +32,22 @@ class MapRoom(val data: RoomData, val height: Int) {
         override fun color(): Array<Color> = when (owner.state) {
             RoomState.UNOPENED if owner.isKnown1x1 -> SpecialColumn.roomColorGuess(owner)
             RoomState.UNOPENED -> {
-                if (owner.data.type == RoomType.BLOOD) arrayOf(IllegalMap.bloodRoomColor.darker(IllegalMap.darkenMultiplier))
-                else arrayOf(IllegalMap.unopenedRoomColor)
+                if (owner.data.type == RoomType.BLOOD) arrayOf(DungeonMap.bloodRoomColor.darker(DungeonMap.darkenMultiplier))
+                else arrayOf(DungeonMap.unopenedRoomColor)
             }
-            in setOf(RoomState.UNDISCOVERED, RoomState.UNOPENED) -> arrayOf(getRoomBaseColor().darker(IllegalMap.darkenMultiplier))
+            in setOf(RoomState.UNDISCOVERED, RoomState.UNOPENED) -> arrayOf(getRoomBaseColor().darker(DungeonMap.darkenMultiplier))
             else -> arrayOf(getRoomBaseColor())
         }
 
         private fun getRoomBaseColor() = when (owner.data.type) {
-            RoomType.BLOOD -> IllegalMap.bloodRoomColor
-            RoomType.NORMAL -> IllegalMap.normalRoomColor
-            RoomType.PUZZLE -> IllegalMap.puzzleRoomColor
-            RoomType.CHAMPION -> IllegalMap.championRoomColor
-            RoomType.TRAP -> IllegalMap.trapRoomColor
-            RoomType.ENTRANCE -> IllegalMap.entranceRoomColor
-            RoomType.FAIRY -> IllegalMap.fairyRoomColor
-            RoomType.RARE -> IllegalMap.rareRoomColor
+            RoomType.BLOOD -> DungeonMap.bloodRoomColor
+            RoomType.NORMAL -> DungeonMap.normalRoomColor
+            RoomType.PUZZLE -> DungeonMap.puzzleRoomColor
+            RoomType.CHAMPION -> DungeonMap.championRoomColor
+            RoomType.TRAP -> DungeonMap.trapRoomColor
+            RoomType.ENTRANCE -> DungeonMap.entranceRoomColor
+            RoomType.FAIRY -> DungeonMap.fairyRoomColor
+            RoomType.RARE -> DungeonMap.rareRoomColor
         }
     }
 
@@ -63,8 +63,8 @@ class MapRoom(val data: RoomData, val height: Int) {
         }
 
         override fun color(): Array<Color> {
-            return if (owner.state in setOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) arrayOf(IllegalMap.normalRoomColor.darker(IllegalMap.darkenMultiplier))
-            else arrayOf(IllegalMap.normalRoomColor)
+            return if (owner.state in setOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) arrayOf(DungeonMap.normalRoomColor.darker(DungeonMap.darkenMultiplier))
+            else arrayOf(DungeonMap.normalRoomColor)
         }
     }
 

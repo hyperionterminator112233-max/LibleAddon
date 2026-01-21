@@ -1,6 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.dungeon.map
 
-import net.kumajunk.libleaddon.features.impl.dungeon.IllegalMap
+import com.odtheking.odin.features.impl.dungeon.DungeonMap
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color
@@ -19,8 +19,8 @@ class Door(pos: Vec2i, var type: Type, val rooms: List<MapRoom.RoomTile>): Tile(
         val xOffset = ((pos.x + 185) shr 4) % 2
         val zOffset = ((pos.z + 185) shr 4) % 2
         return Vec2i(
-            (xOffset xor 1) * IllegalMap.doorThickness + xOffset * 4,
-            (zOffset xor 1) * IllegalMap.doorThickness + zOffset * 4
+            (xOffset xor 1) * DungeonMap.doorThickness + xOffset * 4,
+            (zOffset xor 1) * DungeonMap.doorThickness + zOffset * 4
         )
     }
 
@@ -29,7 +29,7 @@ class Door(pos: Vec2i, var type: Type, val rooms: List<MapRoom.RoomTile>): Tile(
         val z = (pos.z + 185) shr 4
         val xEven = x % 2
         val zEven = z % 2
-        val thicknessBasedOffset = (16 - IllegalMap.doorThickness) / 2
+        val thicknessBasedOffset = (16 - DungeonMap.doorThickness) / 2
         val xOffset = (x shr 1) * 20 + xEven * 16 + (xEven xor 1) * thicknessBasedOffset
         val yOffset = (z shr 1) * 20 + zEven * 16 + (zEven xor 1) * thicknessBasedOffset
         return Vec2i(xOffset, yOffset)
@@ -40,35 +40,35 @@ class Door(pos: Vec2i, var type: Type, val rooms: List<MapRoom.RoomTile>): Tile(
 
         return when {
             hasUnopenedRoom && type != Type.NORMAL -> getLockedDoorColor()
-            hasUnopenedRoom -> arrayOf(IllegalMap.unopenedDoorColor)
+            hasUnopenedRoom -> arrayOf(DungeonMap.unopenedDoorColor)
             else -> arrayOf(getOpenDoorColor())
         }
     }
 
     private fun getLockedDoorColor(): Array<Color> = when (type) {
-        Type.BLOOD -> arrayOf(if (locked) IllegalMap.bloodDoorColor.darker(IllegalMap.darkenMultiplier) else IllegalMap.bloodDoorColor)
-        Type.WITHER -> arrayOf(if (locked) IllegalMap.witherDoorColor.darker(IllegalMap.darkenMultiplier) else IllegalMap.witherDoorColor)
-        Type.NORMAL -> arrayOf(IllegalMap.unopenedDoorColor)
+        Type.BLOOD -> arrayOf(if (locked) DungeonMap.bloodDoorColor.darker(DungeonMap.darkenMultiplier) else DungeonMap.bloodDoorColor)
+        Type.WITHER -> arrayOf(if (locked) DungeonMap.witherDoorColor.darker(DungeonMap.darkenMultiplier) else DungeonMap.witherDoorColor)
+        Type.NORMAL -> arrayOf(DungeonMap.unopenedDoorColor)
     }
 
     private fun getOpenDoorColor(): Color = when (type) {
-        Type.BLOOD -> IllegalMap.bloodDoorColor
-        Type.WITHER -> if (locked) IllegalMap.witherDoorColor
-                      else rooms.firstOrNull { it.owner.data.type == RoomType.FAIRY }?.let { IllegalMap.fairyDoorColor }
-                           ?: IllegalMap.normalDoorColor
+        Type.BLOOD -> DungeonMap.bloodDoorColor
+        Type.WITHER -> if (locked) DungeonMap.witherDoorColor
+                      else rooms.firstOrNull { it.owner.data.type == RoomType.FAIRY }?.let { DungeonMap.fairyDoorColor }
+                           ?: DungeonMap.normalDoorColor
         Type.NORMAL -> getDoorColorByRoomType()
     }
 
     private fun getDoorColorByRoomType(): Color {
         val specialRoom = rooms.firstOrNull { it.owner.data.type !in setOf(RoomType.NORMAL, RoomType.FAIRY) }
         return when (specialRoom?.owner?.data?.type) {
-            RoomType.ENTRANCE -> IllegalMap.entranceDoorColor
-            RoomType.BLOOD -> IllegalMap.bloodDoorColor
-            RoomType.CHAMPION -> IllegalMap.championDoorColor
-            RoomType.PUZZLE -> IllegalMap.puzzleDoorColor
-            RoomType.RARE -> IllegalMap.rareDoorColor
-            RoomType.TRAP -> IllegalMap.trapDoorColor
-            else -> IllegalMap.normalDoorColor
+            RoomType.ENTRANCE -> DungeonMap.entranceDoorColor
+            RoomType.BLOOD -> DungeonMap.bloodDoorColor
+            RoomType.CHAMPION -> DungeonMap.championDoorColor
+            RoomType.PUZZLE -> DungeonMap.puzzleDoorColor
+            RoomType.RARE -> DungeonMap.rareDoorColor
+            RoomType.TRAP -> DungeonMap.trapDoorColor
+            else -> DungeonMap.normalDoorColor
         }
     }
 }

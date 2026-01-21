@@ -1,12 +1,12 @@
 package net.kumajunk.libleaddon.features.impl.dungeon.map
 
+import com.odtheking.odin.features.impl.dungeon.DungeonMap
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color
 import com.odtheking.odin.utils.Color.Companion.darker
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomState
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomType
-import net.kumajunk.libleaddon.features.impl.dungeon.IllegalMap
 
 object SpecialColumn {
     var column = -1
@@ -101,27 +101,27 @@ object SpecialColumn {
 
         return when {
             specialSize <= DungeonUtils.puzzleCount || discovered1x1s - specialColumnRoomCount >= 2 ->
-                arrayOf(IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier))
+                arrayOf(DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier))
 
             opened1x1s.any { it.data.type == RoomType.TRAP && !it.specialTile } ->
-                arrayOf(IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier))
+                arrayOf(DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier))
 
             specialSize == DungeonUtils.puzzleCount + 1 ->
                 arrayOf(
-                    IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier),
-                    IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier)
+                    DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier),
+                    DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier)
                 )
 
             discovered1x1s - specialColumnRoomCount == 1 ->
                 arrayOf(
-                    IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier),
-                    IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier)
+                    DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier),
+                    DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier)
                 )
 
             else -> arrayOf(
-                IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier),
-                IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier),
-                IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier)
+                DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier),
+                DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier),
+                DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier)
             )
         }
     }
@@ -133,42 +133,42 @@ object SpecialColumn {
         if (totalPuzzles == DungeonUtils.puzzleCount) {
             return when {
                 opened1x1s.any { it.data.type == RoomType.TRAP } ->
-                    arrayOf(IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier))
+                    arrayOf(DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier))
 
                 opened1x1s.any { it.data.type == RoomType.CHAMPION } ->
-                    arrayOf(IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier))
+                    arrayOf(DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier))
 
                 else -> arrayOf(
-                    IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier),
-                    IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier)
+                    DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier),
+                    DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier)
                 )
             }
         }
 
         if (specialColumnRoomCount == DungeonUtils.puzzleCount + 1)
-            return arrayOf(IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier))
+            return arrayOf(DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier))
 
         if (opened1x1s.count { it.data.type in setOf(RoomType.CHAMPION, RoomType.TRAP) } == 2)
-            return arrayOf(IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier))
+            return arrayOf(DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier))
 
         if (opened1x1s.size == DungeonUtils.puzzleCount + 1) {
             return when {
                 opened1x1s.none { it.data.type == RoomType.TRAP } ->
-                    arrayOf(IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier))
+                    arrayOf(DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier))
 
                 opened1x1s.none { it.data.type == RoomType.CHAMPION } ->
-                    arrayOf(IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier))
+                    arrayOf(DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier))
 
-                else -> arrayOf(IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier))
+                else -> arrayOf(DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier))
             }
         }
 
-        val result = mutableListOf(IllegalMap.puzzleRoomColor.darker(IllegalMap.darkenMultiplier))
+        val result = mutableListOf(DungeonMap.puzzleRoomColor.darker(DungeonMap.darkenMultiplier))
         if (opened1x1s.none { it.data.type == RoomType.TRAP })
-            result.add(IllegalMap.trapRoomColor.darker(IllegalMap.darkenMultiplier))
+            result.add(DungeonMap.trapRoomColor.darker(DungeonMap.darkenMultiplier))
 
         if (opened1x1s.none { it.data.type == RoomType.CHAMPION })
-            result.add(IllegalMap.championRoomColor.darker(IllegalMap.darkenMultiplier))
+            result.add(DungeonMap.championRoomColor.darker(DungeonMap.darkenMultiplier))
 
         return result.toTypedArray()
     }
