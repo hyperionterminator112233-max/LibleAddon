@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "odinaddon",
+  "version": "${version}",
+  "name": "OdinAddon",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "BSD-3-Clause",
+  "icon": "assets/libleaddon/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "net.kumajunk.libleaddon.LibleAddon"
+      }
+    ]
+  },
+  "mixins": [
+    "libleaddon.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "~${minecraft_version}",
+    "fabric-language-kotlin": ">=${fabric_kotlin_version}",
+    "odin": "*"
+  }
+}

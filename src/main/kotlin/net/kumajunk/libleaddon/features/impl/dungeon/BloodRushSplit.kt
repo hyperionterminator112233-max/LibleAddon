@@ -1,0 +1,86 @@
+package net.kumajunk.libleaddon.features.impl.dungeon
+
+import com.odtheking.odin.OdinMod
+import com.odtheking.odin.events.WorldEvent
+import com.odtheking.odin.events.core.on
+import com.odtheking.odin.events.core.onReceive
+import com.odtheking.odin.features.Module
+import com.odtheking.odin.utils.noControlCodes
+import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomType
+import net.kumajunk.libleaddon.features.impl.dungeon.map.MapScanner
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+
+/**
+ * Blood Rush中のスプリットタイムを計測・表示するモジュール
+ */
+object BloodRushSplit : Module(
+    name = "Blood Rush Split(LA)",
+    description = "Tracks and displays split times during Blood Rush."
+) {
+    private val rooms = mutableListOf<String>()
+    private val clearTimes = mutableListOf<Long>()
+    private var brStart = 0L
+    private val omitRooms = listOf("Entrance", "Fairy", "Blood")
+
+    init {
+        // ワールドロード時にリセット
+        on<WorldEvent.Load> { reset() }
+
+        // チャットメッセージ検知
+        onReceive<ClientboundSystemChatPacket> {
+            val msg = content.string?.noControlCodes ?: return@onReceive
+
+            // Blood Rush開始（Mortのメッセージ）
+            if (msg.contains("Mort:") && msg.contains("I found this map")) {
+                brStart = System.currentTimeMillis()
+                clearTimes.add(0L)
+            }
+
+            // WITHERドア開放 -> スプリット記録
+            if (brStart > 0 && msg.contains("opened a WITHER door")) {
+                clearTimes.add(System.currentTimeMillis() - brStart)
+            }
+
+            // BLOODドア開放 -> ルート計算・結果表示
+            if (brStart > 0 && msg.contains("BLOOD DOOR") && msg.contains("opened")) {
+                clearTimes.add(System.currentTimeMillis() - brStart)
+
+                // ルート計算
+                val route = MapScanner.getRouteBetween(RoomType.ENTRANCE, RoomType.BLOOD)
+                    .filter { it !in omitRooms }
+                rooms.addAll(route)
+
+                displaySplits()
+                reset()
+            }
+        }
+    }
+
+    /**
+     * スプリットタイムをチャットに表示
+     */
+    private fun displaySplits() {
+        val message = buildString {
+            append("\n§f§m------------------------------§r\n")
+            append("§c§lBlood Rush Splits:\n")
+            for (i in rooms.indices) {
+                if (i + 1 < clearTimes.size) {
+                    val time = (clearTimes[i + 1] - clearTimes[i]) / 1000.0
+                    append("§f${rooms[i]}: §b${String.format("%.2f", time)}s\n")
+                }
+            }
+            append("§f§m------------------------------§r\n")
+        }
+        OdinMod.mc.execute { OdinMod.mc.gui?.chat?.addMessage(Component.literal(message)) }
+    }
+
+    /**
+     * 状態をリセット
+     */
+    private fun reset() {
+        rooms.clear()
+        clearTimes.clear()
+        brStart = 0L
+    }
+}

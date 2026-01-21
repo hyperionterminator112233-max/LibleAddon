@@ -1,0 +1,39 @@
+package net.kumajunk.libleaddon.features.impl.dungeon
+
+import com.odtheking.odin.events.TickEvent
+import com.odtheking.odin.events.WorldEvent
+import com.odtheking.odin.events.core.on
+import com.odtheking.odin.features.Module
+import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
+import net.kumajunk.libleaddon.utils.addonMessage
+
+object ScoreMilestone : Module(
+    name = "Score Milestone(LA)",
+    description = "Announces when you reach 270 & 300 score in dungeons."
+) {
+    var announced270 = false
+    var announced300 = false
+
+    init {
+        on<TickEvent.End> {
+            if (!DungeonUtils.inDungeons) return@on
+
+            val score = DungeonUtils.score
+
+            if (score >= 270 && !announced270) {
+                addonMessage("§f270 Score reached! §b(${DungeonUtils.dungeonTime})")
+                announced270 = true
+            }
+
+            if (score >= 300 && !announced300) {
+                addonMessage("§f300 Score reached! §b(${DungeonUtils.dungeonTime})")
+                announced300 = true
+            }
+        }
+
+        on<WorldEvent.Load> {
+            announced270 = false
+            announced300 = false
+        }
+    }
+}
