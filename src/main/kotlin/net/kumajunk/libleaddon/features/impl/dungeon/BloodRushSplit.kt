@@ -1,14 +1,19 @@
 package net.kumajunk.libleaddon.features.impl.dungeon
 
 import com.odtheking.odin.OdinMod
+import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.events.core.onReceive
 import com.odtheking.odin.features.Module
+import com.odtheking.odin.features.impl.dungeon.map.SpecialColumn
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomType
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents
+import net.kumajunk.libleaddon.features.impl.dungeon.map.DungMap
 import net.kumajunk.libleaddon.features.impl.dungeon.map.MapScanner
 import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 
 /**
@@ -26,6 +31,18 @@ object BloodRushSplit : Module(
     init {
         // ワールドロード時にリセット
         on<WorldEvent.Load> { reset() }
+
+        on<TickEvent.End> {
+            MapScanner.scan(world)
+        }
+
+        ClientChunkEvents.CHUNK_LOAD.register { _, _ ->
+            DungMap.onChunkLoad()
+        }
+
+        onReceive<ClientboundMapItemDataPacket> {
+            DungMap.rescanMapItem(this)
+        }
 
         // チャットメッセージ検知
         onReceive<ClientboundSystemChatPacket> {
@@ -79,6 +96,9 @@ object BloodRushSplit : Module(
      * 状態をリセット
      */
     private fun reset() {
+        SpecialColumn.unload()
+        MapScanner.unload()
+        DungMap.unload()
         rooms.clear()
         clearTimes.clear()
         brStart = 0L
