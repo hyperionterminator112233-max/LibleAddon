@@ -14,6 +14,7 @@ import com.odtheking.odin.utils.handlers.schedule
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.playSoundSettings
 import com.odtheking.odin.utils.render.textDim
+import net.kumajunk.libleaddon.LibleAddon.playerName
 
 object PreEnterNotifier : Module(
     name = "Pre Enter Notifier(LA)",
@@ -29,7 +30,10 @@ object PreEnterNotifier : Module(
     private val eeSoundSettings = createSoundSettings("EE Notification Sound", "random.orb") { eeSoundDropdown }
     
     private val eeHud by HUD("EE Notifier HUD", desc = "Displays EE device notifications on HUD.", toggleable = false) {
-        if (!it && !drawEEHud) return@HUD 0 to 0
+        if (it) {
+            return@HUD textDim("$playerName is At SS!", 0, 0, eeNotifierColor)
+        }
+        else if (!drawEEHud) return@HUD 0 to 0
         textDim(eeMessage, 0, 0, eeNotifierColor)
     }
 
@@ -41,7 +45,10 @@ object PreEnterNotifier : Module(
     private val melodySoundSettings = createSoundSettings("Melody Notification Sound", "random.levelup") { melodySoundDropdown }
 
     private val melodyHud by HUD("Melody Notifier HUD", desc = "Displays Melody terminal notifications on HUD.", toggleable = false) {
-        if (!it && !drawMelodyHud) return@HUD 0 to 0
+        if (it) {
+            return@HUD textDim("$playerName Has Melody! (25%)", 0, 0, melodyNotifyColor)
+        }
+        else if (!drawMelodyHud) return@HUD 0 to 0
         textDim(melodyMessage, 0, 0, melodyNotifyColor)
     }
 

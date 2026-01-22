@@ -19,6 +19,8 @@ import net.kumajunk.libleaddon.features.impl.dungeon.*
 import net.kumajunk.libleaddon.features.impl.floor7.CoreTime
 import net.kumajunk.libleaddon.features.impl.floor7.CrushTimer
 import net.kumajunk.libleaddon.features.impl.floor7.CrystalNotifier
+import net.kumajunk.libleaddon.features.impl.floor7.DiamanteNotifier
+import net.kumajunk.libleaddon.features.impl.floor7.HidePlayerOnLeap
 import net.kumajunk.libleaddon.features.impl.floor7.PositionNotifier
 import net.kumajunk.libleaddon.features.impl.floor7.PreEnterNotifier
 import net.kumajunk.libleaddon.features.impl.floor7.Predev
@@ -63,6 +65,8 @@ object LibleAddon : ClientModInitializer {
                     CoreTime,
                     CrushTimer,
                     CrystalNotifier,
+                    DiamanteNotifier,
+                    HidePlayerOnLeap,
                     PositionNotifier,
                     Predev,
                     PreEnterNotifier,
