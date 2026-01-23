@@ -17,6 +17,12 @@ object AutoRefill : Module(
     name = "Auto Refill(LA)",
     description = "Automatically refill consumable items",
 ) {
+    private var isZeroRefill = +BooleanSetting(
+        name = "Allow Zero Refill",
+        default = false,
+        desc = "Whether to replenish items when they reach 0"
+    )
+
     private var isPearlRefill = +BooleanSetting(
         name = "Pearl Refill",
         default = true,
@@ -54,14 +60,22 @@ object AutoRefill : Module(
 
             if (isPearlRefill.value) {
                 val pearlCount = OdinMod.mc.player?.inventory?.find { it?.itemId == "ENDER_PEARL" }?.count ?: 0
-                if (pearlCount < pearlThreshold.value) sendCommand("gfs ender_pearl ${16 - pearlCount}") else return@on
-                addonMessage("§aAuto Refilled Ender Pearls!")
+                if (pearlCount == 0 && !isZeroRefill.value) return@on
+                if (pearlCount < pearlThreshold.value) {
+                    sendCommand("gfs ender_pearl ${16 - pearlCount}")
+                    addonMessage("§aAuto Refilled Ender Pearls!")
+                    return@on
+                }
             }
 
             if (isSuperboomRefill.value) {
                 val superboomCount = OdinMod.mc.player?.inventory?.find { it?.itemId == "SUPERBOOM_TNT" }?.count ?: 0
-                if (superboomCount < superboomThreshold.value) sendCommand("gfs superboom_tnt ${64 - superboomCount}") else return@on
-                addonMessage("§aAuto Refilled Superboom TNT!")
+                if (superboomCount == 0 && !isZeroRefill.value) return@on
+                if (superboomCount < superboomThreshold.value) {
+                    sendCommand("gfs superboom_tnt ${64 - superboomCount}")
+                    addonMessage("§aAuto Refilled Superboom TNT!")
+                    return@on
+                }
             }
         }
     }
