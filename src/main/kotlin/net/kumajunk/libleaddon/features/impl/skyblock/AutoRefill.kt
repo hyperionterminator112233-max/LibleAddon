@@ -1,6 +1,5 @@
 package net.kumajunk.libleaddon.features.impl.skyblock
 
-import com.odtheking.odin.OdinMod
 import com.odtheking.odin.clickgui.settings.Setting.Companion.withDependency
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting
@@ -59,7 +58,7 @@ object AutoRefill : Module(
             if (mc.screen != null) return@on
 
             if (isPearlRefill.value) {
-                val pearlCount = OdinMod.mc.player?.inventory?.find { it?.itemId == "ENDER_PEARL" }?.count ?: 0
+                val pearlCount = mc.player?.inventory?.find { it?.itemId == "ENDER_PEARL" }?.count ?: 0
                 if (pearlCount == 0 && !isZeroRefill.value) return@on
                 if (pearlCount < pearlThreshold.value) {
                     sendCommand("gfs ender_pearl ${16 - pearlCount}")
@@ -69,7 +68,7 @@ object AutoRefill : Module(
             }
 
             if (isSuperboomRefill.value) {
-                val superboomCount = OdinMod.mc.player?.inventory?.find { it?.itemId == "SUPERBOOM_TNT" }?.count ?: 0
+                val superboomCount = mc.player?.inventory?.find { it?.itemId == "SUPERBOOM_TNT" }?.count ?: 0
                 if (superboomCount == 0 && !isZeroRefill.value) return@on
                 if (superboomCount < superboomThreshold.value) {
                     sendCommand("gfs superboom_tnt ${64 - superboomCount}")
