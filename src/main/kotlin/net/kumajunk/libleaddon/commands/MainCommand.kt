@@ -13,9 +13,9 @@ import com.odtheking.odin.utils.toFixed
 import kotlinx.coroutines.launch
 import net.kumajunk.libleaddon.utils.addonMessage
 import net.kumajunk.libleaddon.utils.sendMessage
+import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
-import java.text.DecimalFormat
 
 /**
  * /lapv コマンド - プレイヤーのダンジョン統計を表示
@@ -26,19 +26,19 @@ import java.text.DecimalFormat
  */
 val profileViewerCommand: Commodore = Commodore("lapv") {
 
-    // 引数なし：自分の統計を表示
+    // No arguments: show your own stats
     runs {
-        val name = mc.user?.name ?: return@runs addonMessage("§cプレイヤー名を取得できませんでした！")
-        addonMessage("§a§6$name§aのダンジョン統計を取得中...")
+        val name = mc.user?.name ?: return@runs addonMessage("§cFailed to get player name!")
+        addonMessage("§aFetching dungeon stats for §6$name§a...")
         scope.launch {
             fetchCataStats(RequestUtils.getProfile(name))
         }
     }
 
-    // プレイヤー名指定：指定したプレイヤーの統計を表示
+    // Player name specified: show stats of the specified player
     runs { mcid: GreedyString ->
         val name = mcid.string
-        addonMessage("§a§6$name§aのダンジョン統計を取得中...")
+        addonMessage("§aFetching dungeon stats for §6$name§a...")
         scope.launch {
             fetchCataStats(RequestUtils.getProfile(name))
         }
@@ -49,10 +49,10 @@ val profileViewerCommand: Commodore = Commodore("lapv") {
  * ダンジョン統計を取得して表示する
  * @param result プレイヤー情報の取得結果
  */
-fun fetchCataStats(result: Result<HypixelData.PlayerInfo>) {
+fun fetchCataStats(result: Result<HypixelData.PlayerInfo>, isPF: Boolean = false) {
     result.fold(
         onSuccess = { playerInfo ->
-            playerInfo.memberData?.let { displayCataStats(playerInfo.name, it) }
+            playerInfo.memberData?.let { displayCataStats(playerInfo.name, it, isPF) }
                 ?: addonMessage("§c§6${playerInfo.name}§cのプロファイルが見つかりませんでした！")
         },
         onFailure = { addonMessage("§c統計の取得に失敗しました: ${it.message}") }
@@ -64,8 +64,7 @@ fun fetchCataStats(result: Result<HypixelData.PlayerInfo>) {
  * @param name プレイヤー名
  * @param member メンバーデータ
  */
-private fun displayCataStats(name: String, member: HypixelData.MemberData) {
-    val decimalFormat = DecimalFormat("#,###")
+private fun displayCataStats(name: String, member: HypixelData.MemberData, isPF: Boolean = false) {
     val dungeons = member.dungeons
     val cata = dungeons.dungeonTypes.catacombs
     val mm = dungeons.dungeonTypes.mastermode
@@ -94,16 +93,13 @@ private fun displayCataStats(name: String, member: HypixelData.MemberData) {
     // Magical Power
     val magicalPower = member.assumedMagicalPower
     val tunings = member.tunings
-    
-    // フロア別情報
-    val floorTiers = listOf("1", "2", "3", "4", "5", "6", "7")
-    
+
     // 区切り線
     val divider = "§f§m-----------------------------------------------------§r"
     
     // ヘッダー表示
     sendMessage(divider)
-    sendMessage("§fViewing §b$name§f's Dungeon Stats!")
+    sendMessage("§b[§fLA§b] §r§fViewing §b$name§f's Dungeon Stats!")
     sendMessage(" ")
     
     // Magical Power（ホバーでTunings表示）
@@ -148,7 +144,15 @@ private fun displayCataStats(name: String, member: HypixelData.MemberData) {
     if (armorPieces.isNotEmpty()) {
         sendMessage(buildArmorLine(armorPieces))
     }
-    
+
+    val kickMessage = Component.literal("§c§nKick $name from the party")
+            .withStyle { it.withHoverEvent(HoverEvent.ShowText(Component.literal("§cClick to kick this player!"))) }
+            .withStyle { it.withClickEvent(ClickEvent.RunCommand("/p kick $name")) }
+
+    if (isPF) {
+        sendMessage(divider)
+        sendMessage(kickMessage)
+    }
     // フッター
     sendMessage(divider)
 }

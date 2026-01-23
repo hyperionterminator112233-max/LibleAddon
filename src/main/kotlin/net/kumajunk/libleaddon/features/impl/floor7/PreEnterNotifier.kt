@@ -18,7 +18,7 @@ import net.kumajunk.libleaddon.LibleAddon.playerName
 
 object PreEnterNotifier : Module(
     name = "Pre Enter Notifier(LA)",
-    description = "Notifies you when a player is at a device or melody terminal in Floor 7 Phase 2.",
+    description = "Notifies you when a player is at a device or melody terminal in Floor 7.",
 ) {
     // --- Phase 2 Detection Settings ---
     private val forceP2True by BooleanSetting("Force P2 True", false, desc = "Force Phase 2 detection to true for debugging. \nDon't Touch This Unless Testing!")
@@ -27,7 +27,7 @@ object PreEnterNotifier : Module(
     private val eeNotifyDisplayTime by NumberSetting("EE Display Time", 3.0, 1.0, 10.0, 0.5, desc = "Duration to display the EE notification.")
     private val eeNotifierColor by ColorSetting("EE Notifier Color", Colors.MINECRAFT_RED, desc = "Color of the EE notification text.")
     private val eeSoundDropdown by DropdownSetting("EE Sound")
-    private val eeSoundSettings = createSoundSettings("EE Notification Sound", "random.orb") { eeSoundDropdown }
+    private val eeSoundSettings = createSoundSettings("EE Notification Sound", "entity.experience_orb.pickup") { eeSoundDropdown }
     
     private val eeHud by HUD("EE Notifier HUD", desc = "Displays EE device notifications on HUD.", toggleable = false) {
         if (it) {
@@ -42,7 +42,7 @@ object PreEnterNotifier : Module(
     private val melodyNotifyDisplayTime by NumberSetting("Melody Display Time", 3.0, 1.0, 10.0, 0.5, desc = "Duration to display the Melody notification.")
     private val melodyNotifyColor by ColorSetting("Melody Notifier Color", Colors.MINECRAFT_GREEN, desc = "Color of the Melody notification text.")
     private val melodySoundDropdown by DropdownSetting("Melody Sound")
-    private val melodySoundSettings = createSoundSettings("Melody Notification Sound", "random.levelup") { melodySoundDropdown }
+    private val melodySoundSettings = createSoundSettings("Melody Notification Sound", "entity.experience_orb.pickup") { melodySoundDropdown }
 
     private val melodyHud by HUD("Melody Notifier HUD", desc = "Displays Melody terminal notifications on HUD.", toggleable = false) {
         if (it) {

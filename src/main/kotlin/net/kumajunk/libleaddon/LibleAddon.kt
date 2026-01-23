@@ -56,10 +56,14 @@ object LibleAddon : ClientModInitializer {
                     BloodRushSplit,
                     CalcLagLoss,
                     ClassDupeNotifier,
+                    CryptReminder,
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
                     StarMobHighlight,
+                    StatsViewer,
+                    WarpCooldown,
+                    WarpSuccessNotifier,
 
                     // floor7
                     CoreTime,
