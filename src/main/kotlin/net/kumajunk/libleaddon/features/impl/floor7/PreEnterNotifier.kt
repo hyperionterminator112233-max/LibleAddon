@@ -8,6 +8,7 @@ import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.features.Module
+import com.odtheking.odin.utils.Color
 import com.odtheking.odin.utils.Colors
 import com.odtheking.odin.utils.createSoundSettings
 import com.odtheking.odin.utils.handlers.schedule
@@ -15,6 +16,7 @@ import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.playSoundSettings
 import com.odtheking.odin.utils.render.textDim
 import net.kumajunk.libleaddon.LibleAddon.playerName
+import net.minecraft.client.gui.GuiGraphics
 
 object PreEnterNotifier : Module(
     name = "Pre Enter Notifier(LA)",
@@ -22,6 +24,7 @@ object PreEnterNotifier : Module(
 ) {
     // --- Phase 2 Detection Settings ---
     private val forceP2True by BooleanSetting("Force P2 True", false, desc = "Force Phase 2 detection to true for debugging. \nDon't Touch This Unless Testing!")
+    private val drawCentered by BooleanSetting("Draw Centered", true, desc = "Draw notifications centered on the screen.")
 
     // --- EE Notifier Settings ---
     private val eeNotifyDisplayTime by NumberSetting("EE Display Time", 3.0, 1.0, 10.0, 0.5, desc = "Duration to display the EE notification.")
@@ -31,10 +34,11 @@ object PreEnterNotifier : Module(
     
     private val eeHud by HUD("EE Notifier HUD", desc = "Displays EE device notifications on HUD.", toggleable = false) {
         if (it) {
-            return@HUD textDim("$playerName is At SS!", 0, 0, eeNotifierColor)
+            return@HUD textDimCentered("$playerName is At SS!", 0, 0, eeNotifierColor, drawCentered)
+
         }
         else if (!drawEEHud) return@HUD 0 to 0
-        textDim(eeMessage, 0, 0, eeNotifierColor)
+        textDimCentered(eeMessage, 0, 0, eeNotifierColor, drawCentered)
     }
 
     // --- Melody Notifier Settings ---
@@ -46,10 +50,10 @@ object PreEnterNotifier : Module(
 
     private val melodyHud by HUD("Melody Notifier HUD", desc = "Displays Melody terminal notifications on HUD.", toggleable = false) {
         if (it) {
-            return@HUD textDim("$playerName Has Melody! (25%)", 0, 0, melodyNotifyColor)
+            return@HUD textDimCentered("$playerName Has Melody! (25%)", 0, 0, melodyNotifyColor, drawCentered)
         }
         else if (!drawMelodyHud) return@HUD 0 to 0
-        textDim(melodyMessage, 0, 0, melodyNotifyColor)
+        textDimCentered(melodyMessage, 0, 0, melodyNotifyColor, drawCentered)
     }
 
     // --- State ---
@@ -132,5 +136,23 @@ object PreEnterNotifier : Module(
             drawEEHud = false
             drawMelodyHud = false
         }
+    }
+
+    /**
+     * 中央揃えでテキストを描画するヘルパー関数
+     * HUDラムダ内で使用するためのGuiGraphics拡張関数
+     * @param text 描画するテキスト
+     * @param x X座標（中央位置）
+     * @param y Y座標
+     * @param color テキストの色
+     * @return テキストの幅と高さのペア
+     */
+    private fun GuiGraphics.textDimCentered(text: String, x: Int, y: Int, color: Color, isCenter: Boolean): Pair<Int, Int> {
+        if (!isCenter) {
+            return this.textDim(text, x, y, color)
+        }
+        val textWidth = mc.font.width(text)
+        val centeredX = x - textWidth / 2
+        return this.textDim(text, centeredX, y, color)
     }
 }
