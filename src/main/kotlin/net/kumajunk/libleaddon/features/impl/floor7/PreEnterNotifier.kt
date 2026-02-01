@@ -88,7 +88,8 @@ object PreEnterNotifier : Module(
             val (player, message) = match.destructured
             val lowerMessage = message.lowercase()
 
-            if (player == mc.player?.name.toString()) return@on
+            val selfName = mc.player?.name?.string ?: return@on
+            if (player == selfName) return@on
 
             // EE Notification (At/Inside/Outside)
             if ((isP2 || forceP2True) && 
