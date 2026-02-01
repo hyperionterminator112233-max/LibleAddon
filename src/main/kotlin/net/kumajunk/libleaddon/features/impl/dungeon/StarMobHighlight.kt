@@ -228,7 +228,7 @@ object StarMobHighlight : Module(
 
         possibleEntities.find { entity ->
             entity.id !in starMobs && when (entity) {
-                is Player -> !entity.isInvisible && entity.uuid.version() == 2 && entity != mc.player
+                is Player -> !entity.isInvisible && entity.uuid.version() == 2 && entity != mc.player && !DungeonUtils.dungeonTeammates.any { it.entity == entity }
                 is WitherBoss -> false
                 else -> true
             }
