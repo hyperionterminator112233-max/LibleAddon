@@ -3,13 +3,17 @@ package net.kumajunk.libleaddon.features.impl.skyblock
 import com.odtheking.odin.clickgui.settings.Setting.Companion.withDependency
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting
+import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.TickEvent
+import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.features.Module
 import com.odtheking.odin.utils.itemId
+import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.sendCommand
 import com.odtheking.odin.utils.skyblock.Island
 import com.odtheking.odin.utils.skyblock.LocationUtils
+import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import net.kumajunk.libleaddon.utils.addonMessage
 
 object AutoRefill : Module(
@@ -49,13 +53,20 @@ object AutoRefill : Module(
     ).withDependency { isSuperboomRefill.value }
 
     private var tick = 0
+    private var isDead = false
 
     init {
         on<TickEvent.End> {
+
+
             tick++
             if (tick % 10 != 0) return@on
             if (!LocationUtils.isInSkyblock || LocationUtils.currentArea == Island.Rift) return@on
             if (mc.screen != null) return@on
+
+            checkHaunt()
+
+            if (isDead) return@on
 
             if (isPearlRefill.value) {
                 val pearlCount = mc.player?.inventory?.find { it?.itemId == "ENDER_PEARL" }?.count ?: 0
@@ -76,6 +87,38 @@ object AutoRefill : Module(
                     return@on
                 }
             }
+
+            tick = 0
         }
+
+        on<WorldEvent.Load> {
+            isDead = false
+        }
+
+        on<ChatPacketEvent> {
+            if (DungeonUtils.inDungeons) {
+                val msg = value.noControlCodes
+
+                if (
+                    msg.contains("☠") &&
+                    msg.contains("became a ghost.") &&
+                    !msg.contains(":")
+                ) {
+                    val split = msg.split(" ")
+                    if (split.getOrNull(2) == "You") {
+                        isDead = true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun checkHaunt() {
+        val player = mc.player ?: return
+        val stack = player.inventory.getItem(0)
+        if (stack.isEmpty) return
+
+        val name = stack.displayName.string.noControlCodes
+        isDead = name.contains("Haunt")
     }
 }

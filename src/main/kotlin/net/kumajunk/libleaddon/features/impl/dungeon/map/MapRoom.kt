@@ -1,6 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.dungeon.map
 
-import com.odtheking.odin.features.impl.dungeon.DungeonMap
+import net.kumajunk.libleaddon.features.impl.dungeon.DungeonMap
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color
@@ -96,7 +96,7 @@ class MapRoom(val data: RoomData, val height: Int) {
         }
 
         // 新しいステータスがUNOPENEDの場合はスキップ
-        if (newState == RoomState.UNOPENED) return null
+        // if (newState == RoomState.UNOPENED) return null
 
         state = newState
         return if (state != oldState) StateUpdated(this, oldState, state) else null

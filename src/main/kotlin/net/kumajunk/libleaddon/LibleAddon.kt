@@ -16,16 +16,8 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.kumajunk.libleaddon.commands.profileViewerCommand
 import net.kumajunk.libleaddon.features.impl.dungeon.*
-import net.kumajunk.libleaddon.features.impl.floor7.CoreTime
-import net.kumajunk.libleaddon.features.impl.floor7.CrushTimer
-import net.kumajunk.libleaddon.features.impl.floor7.CrystalNotifier
-import net.kumajunk.libleaddon.features.impl.floor7.DiamanteNotifier
-import net.kumajunk.libleaddon.features.impl.floor7.HidePlayerOnLeap
-import net.kumajunk.libleaddon.features.impl.floor7.PositionNotifier
-import net.kumajunk.libleaddon.features.impl.floor7.PreEnterNotifier
-import net.kumajunk.libleaddon.features.impl.floor7.Predev
-import net.kumajunk.libleaddon.features.impl.floor7.PurplePad
-import net.kumajunk.libleaddon.features.impl.floor7.SimonSaysTimer
+import net.kumajunk.libleaddon.features.impl.floor7.*
+import net.kumajunk.libleaddon.features.impl.render.NoHurtCam
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
 import java.net.URI
 import java.net.http.HttpRequest
@@ -57,6 +49,7 @@ object LibleAddon : ClientModInitializer {
                     CalcLagLoss,
                     ClassDupeNotifier,
                     CryptReminder,
+                    DungeonMap,
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
@@ -71,11 +64,16 @@ object LibleAddon : ClientModInitializer {
                     CrystalNotifier,
                     DiamanteNotifier,
                     HidePlayerOnLeap,
+                    I4Helper,
+                    I4Timer,
                     PositionNotifier,
                     Predev,
                     PreEnterNotifier,
                     PurplePad,
                     SimonSaysTimer,
+
+                    // render
+                    NoHurtCam,
 
                     // skyblock
                     AutoRefill

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "odinaddon",
-  "version": "${version}",
-  "name": "OdinAddon",
+  "id": "libleaddon",
+  "version": "0.0.6",
+  "name": "LibleAddon",
   "description": "",
   "authors": ["Kuma_junk", "Zexia"],
   "contact": {
-    "discord": ""
+    "discord": "https://discord.gg/nDcJTRahUz"
   },
   "license": "BSD-3-Clause",
   "icon": "assets/libleaddon/icon.png",

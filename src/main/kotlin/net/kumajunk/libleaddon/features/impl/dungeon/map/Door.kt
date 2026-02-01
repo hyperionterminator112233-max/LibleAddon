@@ -1,6 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.dungeon.map
 
-import com.odtheking.odin.features.impl.dungeon.DungeonMap
+import net.kumajunk.libleaddon.features.impl.dungeon.DungeonMap
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color

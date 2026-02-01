@@ -4,6 +4,7 @@ import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.events.PacketEvent
 import com.odtheking.odin.events.RenderEvent
+import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.features.Module
@@ -29,6 +30,8 @@ object StarMobHighlight : Module(
 ) {
     // 検知済みのアーマースタンドを記録（重複検知防止）
     private val checkedArmorStands = HashSet<Int>()
+
+    private val tickScannedArmorStands = HashSet<Int>()
 
     // スター付きモブのエンティティID一覧
     private val starMobs = HashSet<Int>()
@@ -121,6 +124,7 @@ object StarMobHighlight : Module(
         // ワールドアンロード時にデータをクリア
         on<WorldEvent.Unload> {
             checkedArmorStands.clear()
+            tickScannedArmorStands.clear()
             starMobs.clear()
         }
 
@@ -176,6 +180,24 @@ object StarMobHighlight : Module(
                 } ?: continue
 
                 drawNormalHighlight(entity, color, filledOutline.value)
+            }
+        }
+
+        on<TickEvent.End> {
+            if (!DungeonUtils.inClear) return@on
+
+            val world = mc.level ?: return@on
+
+            for (entity in world.entitiesForRendering()) {
+                if (entity !is ArmorStand) continue
+                if (!entity.hasCustomName()) continue
+                if (entity.id in tickScannedArmorStands) continue
+
+                val name = entity.customName?.string ?: continue
+                if (!name.contains("§6✯") && !name.contains("✯")) continue
+
+                tickScannedArmorStands.add(entity.id)
+                checkStarMob(entity)
             }
         }
     }
