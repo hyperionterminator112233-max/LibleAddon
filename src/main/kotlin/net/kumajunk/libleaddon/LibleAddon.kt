@@ -71,6 +71,7 @@ object LibleAddon : ClientModInitializer {
                     PreEnterNotifier,
                     PurplePad,
                     SimonSaysTimer,
+                    StormKillTime,
 
                     // render
                     NoHurtCam,
