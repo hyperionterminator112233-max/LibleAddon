@@ -1,6 +1,5 @@
 package net.kumajunk.libleaddon.features.impl.dungeon
 
-import com.odtheking.odin.OdinMod
 import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
@@ -87,9 +86,10 @@ object BloodRushSplit : Module(
                     append("§f${rooms[i]}: §b${String.format("%.2f", time)}s\n")
                 }
             }
-            append("§f§m------------------------------§r\n")
+            append("\n§b§lTotal Time: §f${String.format("%.2f", (clearTimes.last() / 1000.0))}s")
+            append("\n§f§m------------------------------§r\n")
         }
-        OdinMod.mc.execute { OdinMod.mc.gui?.chat?.addMessage(Component.literal(message)) }
+        mc.execute { mc.gui?.chat?.addMessage(Component.literal(message)) }
     }
 
     /**
