@@ -1,0 +1,123 @@
+package net.kumajunk.libleaddon.features.impl.floor7.dragprio
+
+import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.priorityDragon
+import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.currentTick
+import net.kumajunk.libleaddon.features.impl.floor7.dragprio.DragonCheck.lastDragonDeath
+import com.odtheking.odin.utils.Color
+import com.odtheking.odin.utils.Colors
+import com.odtheking.odin.utils.alert
+import net.kumajunk.libleaddon.features.impl.floor7.DragPrio
+import net.kumajunk.libleaddon.features.impl.floor7.dragprio.DragonPriority.findPriority
+import net.minecraft.core.BlockPos
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
+import net.minecraft.world.phys.AABB
+import java.util.*
+
+/*
+ * code from odinFabric (https://github.com/odtheking/OdinFabric)
+ */
+enum class WitherDragonsEnum(
+    val statuePos: BlockPos,
+    val aabbDimensions: AABB,
+    val colorCode: Char,
+    val color: Color,
+    val xRange: ClosedFloatingPointRange<Double>,
+    val zRange: ClosedFloatingPointRange<Double>,
+    var timeToSpawn: Int = 100,
+    var state: WitherDragonState = WitherDragonState.DEAD,
+    var timesSpawned: Int = 0,
+    var entityUUID: UUID? = null,
+    var isSprayed: Boolean = false,
+    var spawnedTime: Long = 0
+) {
+    Red(BlockPos(32, 22, 59), AABB(14.5, 13.0, 45.5, 39.5, 28.0, 70.5), 'c', Colors.MINECRAFT_RED, 24.0..30.0, 56.0..62.0),
+    Orange(BlockPos(80, 23, 56), AABB(72.0, 8.0, 47.0, 102.0, 28.0, 77.0), '6', Colors.MINECRAFT_GOLD, 82.0..88.0, 53.0..59.0),
+    Green(BlockPos(32, 23, 94), AABB(7.0, 8.0, 80.0, 37.0, 28.0, 110.0), 'a', Colors.MINECRAFT_GREEN, 23.0..29.0, 91.0..97.0),
+    Blue(BlockPos(79, 23, 94), AABB(71.5, 13.0, 82.5, 96.5, 26.0, 107.5), 'b', Colors.MINECRAFT_AQUA, 82.0..88.0, 91.0..97.0),
+    Purple(BlockPos(56, 22, 120), AABB(45.5, 13.0, 113.5, 68.5, 23.0, 136.5), '5', Colors.MINECRAFT_DARK_PURPLE, 53.0..59.0, 122.0..128.0);
+
+    fun setAlive(entityId: UUID?) {
+        if (entityId != null) this.entityUUID = entityId
+
+        if (state == WitherDragonState.ALIVE) return
+        state = WitherDragonState.ALIVE
+
+        timesSpawned++
+        spawnedTime = currentTick
+        isSprayed = false
+    }
+
+    fun setDead(realTime: Boolean) {
+        state = WitherDragonState.DEAD
+        entityUUID = null
+        lastDragonDeath = this
+
+        if (priorityDragon == this) priorityDragon = null
+    }
+
+    companion object {
+        fun reset(soft: Boolean = false) {
+            if (soft) {
+                entries.forEach {
+                    it.state = WitherDragonState.DEAD
+                    it.timesSpawned++
+                }
+                return
+            }
+
+            entries.forEach {
+                it.timeToSpawn = 0
+                it.timesSpawned = 0
+                it.state = WitherDragonState.DEAD
+                it.entityUUID = null
+                it.isSprayed = false
+                it.spawnedTime = 0
+            }
+            priorityDragon = null
+            lastDragonDeath = null
+        }
+    }
+}
+
+enum class WitherDragonState {
+    SPAWNING,
+    ALIVE,
+    DEAD
+}
+
+fun handleSpawnPacket(particle: ClientboundLevelParticlesPacket) {
+    if (
+        particle.count != 20 ||
+        particle.y != 19.0 ||
+        particle.particle.type != ParticleTypes.FLAME ||
+        particle.xDist != 2f ||
+        particle.yDist != 3f ||
+        particle.zDist != 2f ||
+        particle.maxSpeed != 0f ||
+        particle.x % 1 != 0.0 ||
+        particle.z % 1 != 0.0
+    ) return
+
+    val (spawned, dragons) = WitherDragonsEnum.entries.fold(0 to mutableListOf<WitherDragonsEnum>()) { (spawned, dragons), dragon ->
+        val newSpawned = spawned + dragon.timesSpawned
+
+        if (dragon.state == WitherDragonState.SPAWNING) {
+            if (dragon !in dragons) dragons.add(dragon)
+            return@fold newSpawned to dragons
+        }
+
+        if (particle.x !in dragon.xRange || particle.z !in dragon.zRange) return@fold newSpawned to dragons
+
+        dragon.state = WitherDragonState.SPAWNING
+        dragon.timeToSpawn = 100
+        dragons.add(dragon)
+        newSpawned to dragons
+    }
+
+    if (dragons.isNotEmpty() && (dragons.size == 2 || spawned >= 2) && priorityDragon == null)
+        priorityDragon = findPriority(dragons).also { dragon ->
+            if (DragPrio.dragonTitle && DragPrio.enabled) alert("§${dragon.colorCode}${dragon.name}", true)
+        }
+}
+

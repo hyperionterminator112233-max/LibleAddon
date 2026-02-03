@@ -64,6 +64,7 @@ object LibleAddon : ClientModInitializer {
                     CrushTimer,
                     CrystalNotifier,
                     DiamanteNotifier,
+                    DragPrio,
                     HidePlayerOnLeap,
                     I4Helper,
                     I4Timer,
