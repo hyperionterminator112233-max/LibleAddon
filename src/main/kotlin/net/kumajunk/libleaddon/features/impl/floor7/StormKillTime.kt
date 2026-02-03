@@ -1,10 +1,12 @@
 package net.kumajunk.libleaddon.features.impl.floor7
 
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
+import com.odtheking.odin.clickgui.settings.impl.SelectorSetting
 import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.features.Module
+import com.odtheking.odin.utils.alert
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.sendCommand
 import com.odtheking.odin.utils.toFixed
@@ -14,6 +16,14 @@ object StormKillTime : Module(
     name = "Storm Kill Time(LA)",
     description = "test"
 ) {
+    val methodList = listOf("type1", "type2")
+    private val displayFormat by SelectorSetting(
+        name = "Display format",
+        default = "type1",
+        options = methodList,
+        desc = "Choose the counting format for displaying kill times."
+    )
+
     private val announceInParty by BooleanSetting(
         name = "Announce in Party",
         desc = "Whether Storm kill times are announced in the party."
@@ -21,34 +31,62 @@ object StormKillTime : Module(
     // Stormのセリフパターン (Crush攻撃検出)
     private val crushPattern = Regex("""^\[BOSS] Storm: (Ouch, that hurt!|Oof)$""")
 
+    // type1
     private val crushEndTime: MutableList<Long> = mutableListOf()
     private val totalTimes: MutableList<Long> = mutableListOf()
+
+    // type2
+    private var stormStartTime = 0L
 
     init {
         // Crushパターン検出でタイマー開始
         on<ChatPacketEvent> {
             val msg = value.noControlCodes
-            if (crushPattern.matches(msg)) {
-                crushEndTime.add(System.currentTimeMillis() + 1000L)
-            }
-            if (msg.contains("Storm is enraged")) {
-                val enragedTime = System.currentTimeMillis()
-                val crushTime = crushEndTime.last()
-                val totalTime = enragedTime - crushTime
-                totalTimes.add(totalTime)
-                addonMessage("§fStorm enraged in §b${(totalTime / 1000.0).toFixed(3)}s§f!")
-                if (announceInParty) {
-                    sendCommand("pc Storm enraged in ${(totalTime / 1000.0).toFixed(3)}s!")
+            if (methodList[displayFormat] == "type1") {
+                if (crushPattern.matches(msg)) {
+                    crushEndTime.add(System.currentTimeMillis() + 1000L)
                 }
-            }
-            if (msg.contains("I should have known that I stood no chance")) {
-                val killTime = System.currentTimeMillis()
-                val crushTime = crushEndTime.last()
-                val totalTime = killTime - crushTime
-                totalTimes.add(totalTime)
-                addonMessage("§fStorm killed in §b${(totalTime / 1000.0).toFixed(3)}s§f! Took §b${((totalTimes[0] + totalTimes[1]) / 1000.0).toFixed(3)}s §ftotal.")
-                if (announceInParty) {
-                    sendCommand("pc Storm killed in ${(totalTime / 1000.0).toFixed(3)}s! Took ${((totalTimes[0] + totalTimes[1]) / 1000.0).toFixed(3)}s total.")
+                if (msg.contains("Storm is enraged")) {
+                    val enragedTime = System.currentTimeMillis()
+                    val crushTime = crushEndTime.last()
+                    val totalTime = enragedTime - crushTime
+                    totalTimes.add(totalTime)
+                    addonMessage("§fStorm enraged in §b${(totalTime / 1000.0).toFixed(3)}s§f!")
+                    if (announceInParty) {
+                        sendCommand("pc Storm enraged in ${(totalTime / 1000.0).toFixed(3)}s!")
+                    }
+                }
+                if (msg.contains("I should have known that I stood no chance")) {
+                    val killTime = System.currentTimeMillis()
+                    val crushTime = crushEndTime.last()
+                    val totalTime = killTime - crushTime
+                    totalTimes.add(totalTime)
+                    addonMessage("§fStorm killed in §b${(totalTime / 1000.0).toFixed(3)}s§f! Took §b${((totalTimes[0] + totalTimes[1]) / 1000.0).toFixed(3)}s §ftotal.")
+                    if (announceInParty) {
+                        sendCommand("pc Storm killed in ${(totalTime / 1000.0).toFixed(3)}s! Took ${((totalTimes[0] + totalTimes[1]) / 1000.0).toFixed(3)}s total.")
+                    }
+                }
+            } else if (methodList[displayFormat] == "type2") {
+                if (msg.contains("[BOSS] Storm: Pathetic Maxor, just like expected.")) {
+                    stormStartTime = System.currentTimeMillis()
+                }
+                if (msg.contains("Storm is enraged")) {
+                    val enragedTime = System.currentTimeMillis()
+                    val totalTime = enragedTime - stormStartTime
+                    addonMessage("§fStorm enraged in §b${(totalTime / 1000.0).toFixed(2)}s§f!")
+                    if (announceInParty) {
+                        sendCommand("pc Storm enraged in ${(totalTime / 1000.0).toFixed(2)}s!")
+                    }
+                    alert((totalTime / 1000.0).toFixed(2))
+                }
+                if (msg.contains("I should have known that I stood no chance")) {
+                    val killTime = System.currentTimeMillis()
+                    val totalTime = killTime - stormStartTime
+                    addonMessage("§fStorm killed in §b${(totalTime / 1000.0).toFixed(2)}s§f!")
+                    if (announceInParty) {
+                        sendCommand("pc Storm killed in ${(totalTime / 1000.0).toFixed(2)}s!")
+                    }
+                    alert((totalTime / 1000.0).toFixed(2))
                 }
             }
         }
@@ -57,6 +95,7 @@ object StormKillTime : Module(
         on<WorldEvent.Unload> {
             crushEndTime.clear()
             totalTimes.clear()
+            stormStartTime = 0L
         }
     }
 }
