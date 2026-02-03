@@ -17,6 +17,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.kumajunk.libleaddon.commands.profileViewerCommand
 import net.kumajunk.libleaddon.features.impl.dungeon.*
 import net.kumajunk.libleaddon.features.impl.floor7.*
+import net.kumajunk.libleaddon.features.impl.render.NoFire
 import net.kumajunk.libleaddon.features.impl.render.NoHurtCam
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
 import java.net.URI
@@ -72,8 +73,10 @@ object LibleAddon : ClientModInitializer {
                     PurplePad,
                     SimonSaysTimer,
                     StormKillTime,
+                    TrueSplit,
 
                     // render
+                    NoFire,
                     NoHurtCam,
 
                     // skyblock
