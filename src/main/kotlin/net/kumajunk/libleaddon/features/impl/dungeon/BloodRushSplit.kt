@@ -1,5 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.dungeon
 
+import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
@@ -22,6 +23,12 @@ object BloodRushSplit : Module(
     name = "Blood Rush Split(LA)",
     description = "Tracks and displays split times during Blood Rush."
 ) {
+    private val showTotalTime by BooleanSetting(
+        name = "Show Total Time",
+        default = false,
+        desc = "Displays the total time taken for the Blood Rush at the end."
+    )
+
     private val rooms = mutableListOf<String>()
     private val clearTimes = mutableListOf<Long>()
     private var brStart = 0L
@@ -86,7 +93,7 @@ object BloodRushSplit : Module(
                     append("§f${rooms[i]}: §b${String.format("%.2f", time)}s\n")
                 }
             }
-            append("\n§b§lTotal Time§f: ${String.format("%.2f", (clearTimes.last() / 1000.0))}s")
+            if (showTotalTime) append("\n§b§lTotal Time§f: ${String.format("%.2f", (clearTimes.last() / 1000.0))}s")
             append("\n§f§m------------------------------§r\n")
         }
         mc.execute { mc.gui?.chat?.addMessage(Component.literal(message)) }
