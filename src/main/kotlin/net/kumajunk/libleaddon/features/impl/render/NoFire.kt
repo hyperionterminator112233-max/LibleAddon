@@ -4,5 +4,5 @@ import com.odtheking.odin.features.Module
 
 object NoFire : Module(
     name = "No Fire(LA)",
-    description = "Cancels rendering of flames when burning"
+    description = "Cancels fire overlay rendering"
 )
