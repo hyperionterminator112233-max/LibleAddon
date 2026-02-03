@@ -33,8 +33,13 @@ object TrueSplit : Module(
             listOf(
                 createHudText(0, "Blood Open", 1500L, 20L),
                 createHudText(1, "Watcher", 5000L, 100L),
-                createHudText(1, "Portal", 5000L, 100L),
-                createHudText(1, "Watcher", 5000L, 100L),
+                createHudText(2, "Portal", 5000L, 100L),
+                createHudText(3, "Maxor", 5000L, 100L),
+                createHudText(4, "Storm", 5000L, 100L),
+                createHudText(5, "Terminals", 5000L, 100L),
+                createHudText(6, "Goldor", 5000L, 100L),
+                createHudText(7, "Necron", 5000L, 100L),
+                createHudText(8, "Dragons", 5000L, 100L)
             )
         } else {
             buildList {
