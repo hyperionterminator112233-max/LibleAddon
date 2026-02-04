@@ -32,7 +32,7 @@ object StormKillTime : Module(
     private val crushPattern = Regex("""^\[BOSS] Storm: (Ouch, that hurt!|Oof)$""")
 
     // type1
-    private val crushEndTime: MutableList<Long> = mutableListOf()
+    private val crushTime: MutableList<Long> = mutableListOf()
     private val totalTimes: MutableList<Long> = mutableListOf()
 
     // type2
@@ -44,11 +44,11 @@ object StormKillTime : Module(
             val msg = value.noControlCodes
             if (methodList[displayFormat] == "type1") {
                 if (crushPattern.matches(msg)) {
-                    crushEndTime.add(System.currentTimeMillis() + 1000L)
+                    crushTime.add(System.currentTimeMillis())
                 }
                 if (msg.contains("Storm is enraged")) {
                     val enragedTime = System.currentTimeMillis()
-                    val crushTime = crushEndTime.last()
+                    val crushTime = crushTime.last()
                     val totalTime = enragedTime - crushTime
                     totalTimes.add(totalTime)
                     addonMessage("§fStorm enraged in §b${(totalTime / 1000.0).toFixed(3)}s§f!")
@@ -58,7 +58,7 @@ object StormKillTime : Module(
                 }
                 if (msg.contains("I should have known that I stood no chance")) {
                     val killTime = System.currentTimeMillis()
-                    val crushTime = crushEndTime.last()
+                    val crushTime = crushTime.last()
                     val totalTime = killTime - crushTime
                     totalTimes.add(totalTime)
                     addonMessage("§fStorm killed in §b${(totalTime / 1000.0).toFixed(3)}s§f! Took §b${((totalTimes[0] + totalTimes[1]) / 1000.0).toFixed(3)}s §ftotal.")
@@ -93,7 +93,7 @@ object StormKillTime : Module(
 
         // ワールドアンロード時にリセット
         on<WorldEvent.Unload> {
-            crushEndTime.clear()
+            crushTime.clear()
             totalTimes.clear()
             stormStartTime = 0L
         }

@@ -1,5 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.floor7
 
+import com.odtheking.odin.OdinMod.scope
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting
 import com.odtheking.odin.events.ChatPacketEvent
@@ -13,6 +14,7 @@ import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.render.textDim
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonListener
 import com.odtheking.odin.utils.toFixed
+import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
@@ -169,6 +171,8 @@ object TrueSplit : Module(
     private var dragonCount = 0
     private var stormEnraged = false
 
+    val regex = Regex("""\s*Team Score:.*""")
+
     init {
         on<WorldEvent.Load> {
             reset()
@@ -236,6 +240,12 @@ object TrueSplit : Module(
             currentStage = 1 // Start waiting for Blood Open (Stage 1)
             return
         }
+        if (regex.containsMatchIn(msg)) {
+            scope.launch {
+                Thread.sleep(500)
+                printBreakdown()
+            }
+        }
 
         // Breakdown Logic (Must run before Main Splits to capture end-of-stage events like Necron Kill)
         handleBreakdown(msg)
@@ -281,11 +291,6 @@ object TrueSplit : Module(
         // Prepare for next stage
         startTimestamp = now
         startTick = currentTick
-
-        // If finishing Necron (Stage 8), we are entering Dragons (Stage 9). Print breakdown.
-        if (currentStage == 8) {
-            printBreakdown()
-        }
 
         currentStage++
 

@@ -93,8 +93,8 @@ object BloodRushSplit : Module(
                     append("§f${rooms[i]}: §b${String.format("%.2f", time)}s\n")
                 }
             }
-            if (showTotalTime) append("\n§b§lTotal Time§f: ${String.format("%.2f", (clearTimes.last() / 1000.0))}s")
-            append("\n§f§m------------------------------§r\n")
+            if (showTotalTime) append("\n§b§lTotal Time§f: ${String.format("%.2f", (clearTimes.last() / 1000.0))}s \n")
+            append("§f§m------------------------------§r\n")
         }
         mc.execute { mc.gui?.chat?.addMessage(Component.literal(message)) }
     }
