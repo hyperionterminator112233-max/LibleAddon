@@ -1,6 +1,7 @@
 package net.kumajunk.libleaddon.features.impl.dungeon
 
 import com.odtheking.odin.clickgui.settings.Setting.Companion.withDependency
+import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.clickgui.settings.impl.DropdownSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting
@@ -11,26 +12,27 @@ import com.odtheking.odin.events.core.onReceive
 import com.odtheking.odin.features.Module
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
-import com.odtheking.odin.utils.Color
-import com.odtheking.odin.utils.Colors
-import com.odtheking.odin.utils.equalsOneOf
-import com.odtheking.odin.utils.itemId
+import com.odtheking.odin.utils.*
 import com.odtheking.odin.utils.render.hollowFill
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
+import com.odtheking.odin.utils.skyblock.dungeon.ScanUtils
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomState
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomType
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents
-import net.kumajunk.libleaddon.features.impl.dungeon.map.*
+import net.kumajunk.libleaddon.features.impl.dungeon.map.DungMap
+import net.kumajunk.libleaddon.features.impl.dungeon.map.MapScanner
+import net.kumajunk.libleaddon.features.impl.dungeon.map.SpecialColumn
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import java.awt.Color as AwtColor
 
 /*
  * code from odinFabric (https://github.com/odtheking/OdinFabric)
  */
 object DungeonMap : Module(
-    name = "Dungeon Map",
+    name = "Dungeon Map(LA)",
     description = "Customizable dungeon map with room colors, door colors, and player names."
 ) {
     var backgroundColor by ColorSetting("Background Color", Color(0, 0, 0, 0.7f), true, desc = "The background color of the map.")
@@ -68,6 +70,7 @@ object DungeonMap : Module(
     var entranceRoomColor by ColorSetting("Entrance Room", Color(20, 133, 0), false, desc = "Color of entrance rooms.").withDependency { roomDropdown }
     var fairyRoomColor by ColorSetting("Fairy Room", Color(244, 19, 139), false, desc = "Color of fairy rooms.").withDependency { roomDropdown }
     var rareRoomColor by ColorSetting("Rare Room", Color(255, 203, 89), false, desc = "Color of rare rooms.").withDependency { roomDropdown }
+    var showSecrets by BooleanSetting("Show Secrets", false, desc = "Replaces room names with secret counts (current/total).").withDependency { roomDropdown }
 
     private val mapHud by HUD("Dungeon Map", "Displays the dungeon map with customizable colors.", false) { example ->
         when {
@@ -121,7 +124,13 @@ object DungeonMap : Module(
             if (room.data.type.equalsOneOf(RoomType.FAIRY, RoomType.ENTRANCE, RoomType.BLOOD)) continue
             if (room.state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) continue
 
-            val splitName = name.split(" ")
+            val displayText = if (showSecrets && room.maxSecret > 0) {
+                "${room.currentSecret}/${room.maxSecret}"
+            } else {
+                name
+            }
+
+            val splitName = displayText.split(" ")
             val defaultHeight = 8 - fontHeight / (2 * textFactor) - ((splitName.size - 1) / 2f * (fontHeight / textFactor)).toInt()
             val placement = room.textPlacement()
             val color = when (room.state) {
@@ -210,6 +219,8 @@ object DungeonMap : Module(
         pose().popMatrix()
     }
 
+    private val secretRegex = Regex("(\\d+)/(\\d+) Secrets")
+
     init {
         on<WorldEvent.Load> {
             SpecialColumn.unload()
@@ -227,6 +238,25 @@ object DungeonMap : Module(
 
         onReceive<ClientboundMapItemDataPacket> {
             mc.execute { DungMap.rescanMapItem(this) }
+        }
+
+        onReceive<ClientboundSystemChatPacket> { event ->
+            val packet = event.packet as? ClientboundSystemChatPacket ?: return@onReceive
+            if (!packet.overlay) return@onReceive
+
+            val content = packet.content().string.noControlCodes
+
+            val match = secretRegex.find(content) ?: return@onReceive
+            val (current, max) = match.destructured
+
+            val currentInt = current.toIntOrNull() ?: 0
+
+            // 5. 現在の部屋のシークレット情報を更新
+            ScanUtils.currentRoom?.let { odinRoom ->
+                MapScanner.allRooms[odinRoom.data.name]?.apply {
+                    this.currentSecret = currentInt
+                }
+            }
         }
     }
 }

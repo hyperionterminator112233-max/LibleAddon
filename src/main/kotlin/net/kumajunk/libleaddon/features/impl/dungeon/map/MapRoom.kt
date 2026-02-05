@@ -5,6 +5,7 @@ import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.Color
 import com.odtheking.odin.utils.Color.Companion.darker
+import com.odtheking.odin.utils.equalsOneOf
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.*
 
 class MapRoom(val data: RoomData, val height: Int) {
@@ -17,6 +18,9 @@ class MapRoom(val data: RoomData, val height: Int) {
     var isKnown1x1 = false
     var specialTile = false
     var rushRoom = false
+
+    var currentSecret: Int = 0
+    var maxSecret: Int = data.secrets
 
     data class StateUpdated(val mapRoom: MapRoom, val old: RoomState, val new: RoomState)
 
@@ -95,10 +99,8 @@ class MapRoom(val data: RoomData, val height: Int) {
             else -> RoomState.DISCOVERED
         }
 
-        // 新しいステータスがUNOPENEDの場合はスキップ
-        // if (newState == RoomState.UNOPENED) return null
-
         state = newState
+        if (state.equalsOneOf(RoomState.GREEN)) currentSecret = maxSecret
         return if (state != oldState) StateUpdated(this, oldState, state) else null
     }
 
