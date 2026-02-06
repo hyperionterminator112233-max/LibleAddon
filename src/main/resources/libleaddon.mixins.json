@@ -12,8 +12,12 @@
     "requireAnnotations": true
   },
   "client": [
+    "CustomHeadLayerMixin",
     "EntityRendererMixin",
     "GameRendererMixin",
+    "HumanoidArmorLayerMixin",
+    "HumanoidRenderStateMixin",
+    "LivingEntityRendererMixin",
     "ScreenEffectRendererMixin"
   ]
 }

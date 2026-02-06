@@ -1,0 +1,32 @@
+package net.kumajunk.libleaddon.mixin;
+
+import net.kumajunk.libleaddon.features.impl.render.HideArmor;
+import net.kumajunk.libleaddon.state.HideArmorState;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.LivingEntity;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(LivingEntityRenderer.class)
+public class LivingEntityRendererMixin {
+
+    @Inject(
+            method = "extractRenderState",
+            at = @At("HEAD")
+    )
+    private void onExtractRenderState(
+            LivingEntity entity,
+            LivingEntityRenderState renderState,
+            float partialTick,
+            CallbackInfo ci
+    ) {
+        if (!(renderState instanceof HideArmorState state)) {
+            return;
+        }
+
+        state.libleaddon$setHideArmor(HideArmor.shouldHide(entity));
+    }
+}
