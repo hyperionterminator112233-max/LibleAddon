@@ -41,8 +41,9 @@ object DungeonMap : Module(
     var textScaling by NumberSetting("Text Scaling", 0.45f, 0.1f, 1f, 0.05f, desc = "Scale of room names.")
 
     private val playerDropdown by DropdownSetting("Player Settings")
+    var playerHeadSize by NumberSetting("Player Head Size", 1f, 0f, 1f, 0.2f, desc = "The size of player heads on the map.").withDependency { playerDropdown }
     var playerHeadBackgroundSize by NumberSetting("Player Head BG Size", 1, 0, 10, 1, desc = "Size of player head background.").withDependency { playerDropdown }
-    var playerNamesScaling by NumberSetting("Player Names Scaling", 0.75f, 0.1f, 2f, 0.05f, desc = "Scale of player names.").withDependency { playerDropdown }
+    var playerNamesScaling by NumberSetting("Player Names Scaling", 0.75f, 0.1f, 2f, 0.05f, desc = "The scale of player names displayed on the map.").withDependency { playerDropdown }
     var playerNameColor by ColorSetting("Player Name Color", Color(70, 70, 70), false, desc = "Color of player names.").withDependency { playerDropdown }
     var showNameAlways by BooleanSetting("Show Name Always", false, desc = "Always show player names on the map.").withDependency { playerDropdown }
 
@@ -183,12 +184,19 @@ object DungeonMap : Module(
                 player.locationSkin?.let { skin ->
                     matrices.rotate(Math.toRadians(180.0 + player.mapRenderYaw()).toFloat())
 
+
+
+                    val baseSize = 10
+                    val scaledSize = (baseSize * playerHeadSize).toInt()
+
                     if (playerHeadBackgroundSize != 0) {
-                        val size = 5 + playerHeadBackgroundSize
+                        val size = scaledSize / 2 + playerHeadBackgroundSize
                         fill(-size, -size, size, size, player.clazz.color.rgba)
                     }
 
-                    PlayerFaceRenderer.draw(this, skin, -5, -5, 10, false, false, -1)
+                    if (playerHeadSize != 0f) {
+                        PlayerFaceRenderer.draw(this, skin, -scaledSize / 2, -scaledSize / 2, scaledSize, false, false, -1)
+                    }
                 }
 
                 matrices.popMatrix()
