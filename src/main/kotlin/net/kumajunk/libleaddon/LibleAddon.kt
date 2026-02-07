@@ -56,7 +56,7 @@ object LibleAddon : ClientModInitializer {
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
-                    // ShieldCooldown,
+                    ShieldCooldown,
                     StarMobHighlight,
                     StatsViewer,
                     WarpCooldown,
