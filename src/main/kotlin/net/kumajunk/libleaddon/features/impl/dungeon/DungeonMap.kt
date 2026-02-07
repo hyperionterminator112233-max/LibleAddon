@@ -5,6 +5,7 @@ import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.clickgui.settings.impl.DropdownSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting
+import com.odtheking.odin.events.RenderEvent
 import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
@@ -13,12 +14,16 @@ import com.odtheking.odin.features.Module
 import com.odtheking.odin.features.impl.dungeon.map.Tile
 import com.odtheking.odin.features.impl.dungeon.map.Vec2i
 import com.odtheking.odin.utils.*
+import com.odtheking.odin.utils.Color.Companion.withAlpha
+import com.odtheking.odin.utils.render.drawFilledBox
+import com.odtheking.odin.utils.render.drawWireFrameBox
 import com.odtheking.odin.utils.render.hollowFill
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import com.odtheking.odin.utils.skyblock.dungeon.ScanUtils
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomState
 import com.odtheking.odin.utils.skyblock.dungeon.tiles.RoomType
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents
+import net.kumajunk.libleaddon.features.impl.dungeon.map.Door
 import net.kumajunk.libleaddon.features.impl.dungeon.map.DungMap
 import net.kumajunk.libleaddon.features.impl.dungeon.map.MapScanner
 import net.kumajunk.libleaddon.features.impl.dungeon.map.SpecialColumn
@@ -26,6 +31,8 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.world.phys.AABB
+import kotlin.text.toDouble
 import java.awt.Color as AwtColor
 
 /*
@@ -59,6 +66,7 @@ object DungeonMap : Module(
     var entranceDoorColor by ColorSetting("Entrance Door", Color(20, 133, 0), false, desc = "Color of entrance doors.").withDependency { doorDropdown }
     var fairyDoorColor by ColorSetting("Fairy Door", Color(244, 19, 139), false, desc = "Color of fairy room doors.").withDependency { doorDropdown }
     var rareDoorColor by ColorSetting("Rare Door", Color(255, 203, 89), false, desc = "Color of rare doors.").withDependency { doorDropdown }
+    var doorHighlight by BooleanSetting("Door Highlight", false, desc = "Highlights Wither and Blood doors in the world when you have the required key.").withDependency { doorDropdown }
 
     // Room Settings
     private val roomDropdown by DropdownSetting("Room Settings")
@@ -77,6 +85,13 @@ object DungeonMap : Module(
     var roomNameColor by ColorSetting("Room Name Color", Colors.MINECRAFT_GREEN, false, desc = "The color used for cleared room names on the map.")
 
     private val hideFrame by BooleanSetting("Hide Frame", false, desc = "If enabled, the border frame around the map will be hidden.")
+
+    var hasWitherKey: Boolean = false
+        private set
+    var hasBloodKey: Boolean = false
+        private set
+    var brComplete: Boolean = false
+        private set
 
     private val mapHud by HUD("Dungeon Map", "Displays the dungeon map with customizable colors.", false) { example ->
         when {
@@ -184,8 +199,6 @@ object DungeonMap : Module(
                 player.locationSkin?.let { skin ->
                     matrices.rotate(Math.toRadians(180.0 + player.mapRenderYaw()).toFloat())
 
-
-
                     val baseSize = 10
                     val scaledSize = (baseSize * playerHeadSize).toInt()
 
@@ -236,6 +249,43 @@ object DungeonMap : Module(
         pose().popMatrix()
     }
 
+    private fun RenderEvent.Extract.renderDoorHighlight() {
+        if (!DungeonUtils.inClear) return
+        if (brComplete) return
+
+        val currentRoomName = DungeonUtils.currentRoomName
+
+        for (door in MapScanner.doors) {
+            // Only Wither or Blood doors
+            if (door.type !in listOf(Door.Type.WITHER, Door.Type.BLOOD)) continue
+
+            // Skip if door is not locked
+            if (!door.locked) continue
+
+            // Check if door is adjacent to current room
+            val isAdjacentToCurrentRoom = door.rooms.any { roomTile ->
+                roomTile.owner.data.name == currentRoomName
+            }
+            if (!isAdjacentToCurrentRoom) continue
+
+            // Color based on key possession
+            val hasKey = when (door.type) {
+                Door.Type.WITHER -> hasWitherKey
+                Door.Type.BLOOD -> hasBloodKey
+                else -> false
+            }
+            val color = if (hasKey) Colors.MINECRAFT_GREEN else Colors.MINECRAFT_RED
+
+            // Calculate AABB (3x3x4) from door position
+            val x = door.pos.x.toDouble() + 0.5
+            val z = door.pos.z.toDouble() + 0.5
+            val box = AABB(x - 1.5, 69.0, z - 1.5, x + 1.5, 73.0, z + 1.5)
+
+            drawWireFrameBox(box, color, 4f, false)
+            drawFilledBox(box, color.withAlpha(0.4f, false), false)
+        }
+    }
+
     private val secretRegex = Regex("(\\d+)/(\\d+) Secrets")
 
     init {
@@ -243,6 +293,10 @@ object DungeonMap : Module(
             SpecialColumn.unload()
             MapScanner.unload()
             DungMap.unload()
+
+            hasWitherKey = false
+            hasBloodKey = false
+            brComplete = false
         }
 
         on<TickEvent.End> {
@@ -274,6 +328,31 @@ object DungeonMap : Module(
                     this.currentSecret = currentInt
                 }
             }
+        }
+
+        onReceive<ClientboundSystemChatPacket> {
+            val msg = content.string?.noControlCodes ?: return@onReceive
+
+            // Key pickup detection
+            when {
+                msg.contains("Wither Key") && msg.contains("obtained") -> hasWitherKey = true
+                msg.contains("Blood Key") && msg.contains("obtained") -> hasBloodKey = true
+            }
+
+            // Door open detection (key consumption)
+            when {
+                msg.contains("WITHER door") && msg.contains("opened") -> hasWitherKey = false
+                msg.contains("BLOOD DOOR") && msg.contains("has been opened") -> {
+                    hasBloodKey = false
+                    brComplete = true
+                }
+            }
+        }
+
+        // Door ESP rendering
+        on<RenderEvent.Extract> {
+            if (!doorHighlight) return@on
+            renderDoorHighlight()
         }
     }
 }
