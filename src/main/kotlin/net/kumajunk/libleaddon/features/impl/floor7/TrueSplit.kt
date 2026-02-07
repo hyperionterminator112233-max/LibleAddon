@@ -147,6 +147,12 @@ object TrueSplit : Module(
         desc = "Delay in seconds before scrolling to the next breakdown section."
     )
 
+    private val bossEntry: Boolean by BooleanSetting(
+        "Boss Entry Split",
+        false,
+        desc = "Show the Boss Entry split (Start -> Boss Portal)."
+    )
+
     data class SplitEntry(val name: String, val time: Long, val tick: Long)
 
     private var currentRun = mutableListOf<SplitEntry>()
@@ -155,6 +161,7 @@ object TrueSplit : Module(
     // Internal state
     private var currentStage = 0
     private var startTimestamp = 0L
+    private var dungeonStartTime = 0L
     private var startTick = 0L
     private var tickCounter = 0L
     private var currentBreakdownScrollIndex = 0
@@ -236,6 +243,7 @@ object TrueSplit : Module(
         if (msg == "[NPC] Mort: Here, I found this map when I first entered the dungeon.") {
             reset()
             startTimestamp = System.currentTimeMillis()
+            dungeonStartTime = startTimestamp
             startTick = tickCounter
             currentStage = 1 // Start waiting for Blood Open (Stage 1)
             return
@@ -269,6 +277,16 @@ object TrueSplit : Module(
             // So label is STAGE_LABELS[currentStage - 1].
             val stageName = STAGE_LABELS.getOrNull(currentStage - 1)?.first ?: "Unknown"
             advanceStage(stageName)
+
+            // Boss Entry Logic (When Portal split ends / Maxor starts)
+            if (currentStage == 4 && bossEntry) {
+                val now = System.currentTimeMillis()
+                val entryTime = now - dungeonStartTime
+                val entryTick = tickCounter
+
+                pb.time("Boss Entry", entryTime / 1000f, "s", "§bBoss Entry §6> §a", true)
+                currentRun.add(SplitEntry("Boss Entry", entryTime, entryTick))
+            }
         }
     }
 
@@ -460,8 +478,8 @@ object TrueSplit : Module(
             if (floor == null || floor.floorNumber != 7 || !floor.isMM) return ""
         }
 
-        val colorConstraint = STAGE_LABELS.getOrNull(stage)
-        val baseColor = colorConstraint?.second ?: "§f"
+        val colorConstraint = STAGE_LABELS.find { it.first == label }
+        val baseColor = colorConstraint?.second ?: if (label == "Boss Entry") "§b" else "§f"
         val activeMarker = if (stage == currentStage - 1) "§n" else ""
 
         val timeColor = "§a"
