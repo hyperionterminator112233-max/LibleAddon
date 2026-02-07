@@ -44,6 +44,7 @@ object DungeonMap : Module(
     var playerHeadBackgroundSize by NumberSetting("Player Head BG Size", 1, 0, 10, 1, desc = "Size of player head background.").withDependency { playerDropdown }
     var playerNamesScaling by NumberSetting("Player Names Scaling", 0.75f, 0.1f, 2f, 0.05f, desc = "Scale of player names.").withDependency { playerDropdown }
     var playerNameColor by ColorSetting("Player Name Color", Color(70, 70, 70), false, desc = "Color of player names.").withDependency { playerDropdown }
+    var showNameAlways by BooleanSetting("Show Name Always", false, desc = "Always show player names on the map.").withDependency { playerDropdown }
 
     private val doorDropdown by DropdownSetting("Door Settings")
     var doorThickness by NumberSetting("Door Thickness", 9, 1, 20, 1, desc = "Thickness of doors on map.").withDependency { doorDropdown }
@@ -158,7 +159,7 @@ object DungeonMap : Module(
         }
 
         if (!DungeonUtils.inBoss) {
-            val renderNames = mc.player?.mainHandItem?.itemId?.equalsOneOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP") == true
+            val renderNames = mc.player?.mainHandItem?.itemId?.equalsOneOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP") == true || showNameAlways
 
             for (player in DungeonUtils.dungeonTeammates) {
                 if (player.isDead) continue
