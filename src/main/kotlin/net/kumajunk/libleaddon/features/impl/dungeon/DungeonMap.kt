@@ -71,6 +71,8 @@ object DungeonMap : Module(
     var fairyRoomColor by ColorSetting("Fairy Room", Color(244, 19, 139), false, desc = "Color of fairy rooms.").withDependency { roomDropdown }
     var rareRoomColor by ColorSetting("Rare Room", Color(255, 203, 89), false, desc = "Color of rare rooms.").withDependency { roomDropdown }
     var showSecrets by BooleanSetting("Show Secrets", false, desc = "Replaces room names with secret counts (current/total).").withDependency { roomDropdown }
+    var showBoth by BooleanSetting("Show Both", false, desc = "Show both room name and secret count.").withDependency { roomDropdown && showSecrets }
+    var roomNameColor by ColorSetting("Room Name Color", Colors.MINECRAFT_GREEN, false, desc = "Color of room names.")
 
     private val mapHud by HUD("Dungeon Map", "Displays the dungeon map with customizable colors.", false) { example ->
         when {
@@ -124,17 +126,19 @@ object DungeonMap : Module(
             if (room.data.type.equalsOneOf(RoomType.FAIRY, RoomType.ENTRANCE, RoomType.BLOOD)) continue
             if (room.state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) continue
 
-            val displayText = if (showSecrets && room.maxSecret > 0) {
-                "${room.currentSecret}/${room.maxSecret}"
-            } else {
-                name
+            val secretsText = if (room.maxSecret > 0) "${room.currentSecret}/${room.maxSecret}" else null
+            val displayText = when {
+                showSecrets && showBoth && secretsText != null -> "$name $secretsText"
+                showSecrets && secretsText != null -> secretsText
+                showSecrets && secretsText == null -> name
+                else -> name
             }
 
             val splitName = displayText.split(" ")
             val defaultHeight = 8 - fontHeight / (2 * textFactor) - ((splitName.size - 1) / 2f * (fontHeight / textFactor)).toInt()
             val placement = room.textPlacement()
             val color = when (room.state) {
-                RoomState.GREEN -> Colors.MINECRAFT_GREEN
+                RoomState.GREEN -> roomNameColor
                 RoomState.CLEARED -> Colors.WHITE
                 RoomState.DISCOVERED -> Color(100, 100, 100)
                 RoomState.FAILED -> Colors.MINECRAFT_RED
