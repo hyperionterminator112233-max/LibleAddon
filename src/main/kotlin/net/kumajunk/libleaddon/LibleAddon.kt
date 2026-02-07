@@ -20,6 +20,7 @@ import net.kumajunk.libleaddon.features.impl.floor7.*
 import net.kumajunk.libleaddon.features.impl.render.HideArmor
 import net.kumajunk.libleaddon.features.impl.render.NoFire
 import net.kumajunk.libleaddon.features.impl.render.NoHurtCam
+import net.kumajunk.libleaddon.features.impl.render.RemoveGlow
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
 import java.net.URI
 import java.net.http.HttpRequest
@@ -55,6 +56,7 @@ object LibleAddon : ClientModInitializer {
                     LeapAnnounce,
                     MaskTimer,
                     ScoreMilestone,
+                    // ShieldCooldown,
                     StarMobHighlight,
                     StatsViewer,
                     WarpCooldown,
@@ -81,6 +83,7 @@ object LibleAddon : ClientModInitializer {
                     HideArmor,
                     NoFire,
                     NoHurtCam,
+                    RemoveGlow,
 
                     // skyblock
                     AutoRefill
