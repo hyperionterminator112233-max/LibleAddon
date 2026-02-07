@@ -73,7 +73,9 @@ object DungeonMap : Module(
     var rareRoomColor by ColorSetting("Rare Room", Color(255, 203, 89), false, desc = "Color of rare rooms.").withDependency { roomDropdown }
     var showSecrets by BooleanSetting("Show Secrets", false, desc = "Replaces room names with secret counts (current/total).").withDependency { roomDropdown }
     var showBoth by BooleanSetting("Show Both", false, desc = "Show both room name and secret count.").withDependency { roomDropdown && showSecrets }
-    var roomNameColor by ColorSetting("Room Name Color", Colors.MINECRAFT_GREEN, false, desc = "Color of room names.")
+    var roomNameColor by ColorSetting("Room Name Color", Colors.MINECRAFT_GREEN, false, desc = "The color used for cleared room names on the map.")
+
+    private val hideFrame by BooleanSetting("Hide Frame", false, desc = "If enabled, the border frame around the map will be hidden.")
 
     private val mapHud by HUD("Dungeon Map", "Displays the dungeon map with customizable colors.", false) { example ->
         when {
@@ -104,7 +106,9 @@ object DungeonMap : Module(
         matrices.pushMatrix()
 
         fill(0, 0, roomsX + offset, roomsZ + offset, backgroundColor.rgba)
-        hollowFill(0, 0, roomsX + offset, roomsZ + offset, 1, Colors.gray26)
+        if (!hideFrame) {
+            hollowFill(0, 0, roomsX + offset, roomsZ + offset, 1, Colors.gray26)
+        }
         matrices.translate(backgroundSize, backgroundSize)
 
         for (room in MapScanner.allRooms.values) {
