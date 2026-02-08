@@ -9,6 +9,7 @@ import com.odtheking.odin.events.core.EventBus
 import com.odtheking.odin.features.ModuleManager
 import com.odtheking.odin.utils.network.WebUtils
 import com.odtheking.odin.utils.network.WebUtils.gson
+import com.odtheking.odin.utils.network.hypixelapi.RequestUtils
 import com.odtheking.odin.utils.network.hypixelapi.RequestUtils.getUuid
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ import net.kumajunk.libleaddon.features.impl.render.NoFire
 import net.kumajunk.libleaddon.features.impl.render.NoHurtCam
 import net.kumajunk.libleaddon.features.impl.render.RemoveGlow
 import net.kumajunk.libleaddon.features.impl.skyblock.AutoRefill
+import net.kumajunk.libleaddon.features.impl.skyblock.Soulflow
 import java.net.URI
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
@@ -86,7 +88,8 @@ object LibleAddon : ClientModInitializer {
                     RemoveGlow,
 
                     // skyblock
-                    AutoRefill
+                    AutoRefill,
+                    Soulflow
                 )
 
                 val name = mc.user?.name?.takeIf { !it.matches(Regex("Player\\d{2,3}")) } ?: return@launch
@@ -99,6 +102,18 @@ object LibleAddon : ClientModInitializer {
                         .onFailure {
                             println("Failed to get UUID for $name: ${it.message}")
                         }
+                }
+                scope.launch {
+                    RequestUtils.getProfile(name)
+                        .fold(
+                            onSuccess = { playerInfo ->
+                                playerInfo.memberData?.let { memberData ->
+                                    Soulflow.soulflowCounts = memberData.miscItemData.soulflow
+                                }
+                                    ?: println("Failed to get soulflow data for $name")
+                            },
+                            onFailure = { println("Failed to get profile for $name: ${it.message}") }
+                        )
                 }
                 println("LibleAddon initialized!")
             }
