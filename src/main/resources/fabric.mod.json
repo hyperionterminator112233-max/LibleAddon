@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "libleaddon",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "name": "LibleAddon",
   "description": "",
   "authors": ["Kuma_junk", "Zexia"],
