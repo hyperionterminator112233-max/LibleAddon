@@ -1,25 +1,51 @@
-# OdinFabric External Module Example
+# LibleAddon
 
-This is an example project to demonstrate adding modules to [OdinFabric](https://github.com/odtheking/OdinFabric) using an external JAR.
+An [OdinFabric](https://github.com/odtheking/OdinFabric) addon for Hypixel Skyblock.  
+Primarily provides features to assist with dungeon gameplay.
 
-## Project Setup
+## Features
 
-To set up the project, follow the Fabric documentation for configuring your development environment:  
-https://docs.fabricmc.net/develop/getting-started/setting-up
+### Dungeon Features
+- **AutoPotionBag** - Automatic potion bag usage
+- **BloodRushSplit** - Blood Rush split timer
+- **CalcLagLoss** - Calculate time loss due to lag
+- **ClassDupeNotifier** - Class duplication notification
+- **CryptReminder** - Uncollected crypt warning
+- **DungeonMap** - Dungeon map display
+- **LeapAnnounce** - Leap usage announcement with class
+- **MaskTimer** - Mask/Phoenix Pet cooldown timer
+- **ScoreMilestone** - Score milestone display/notification
+- **ShieldCooldown** - Shield cooldown display
+- **StarMobHighlight** - Star mob highlighting
+- **StatsViewer** - Statistics viewer
+- **WarpCooldown** - Warp cooldown display
+- **WarpSuccessNotifier** - Warp success notification
 
-### Notes While Following the Wiki
+### Floor 7 Features
+- **CoreTime** - Core phase timer
+- **CrushTimer** - Crush timer
+- **CrystalNotifier** - Energy crystal notification
+- **DiamanteNotifier** - Diamante/Boomer Giant notification
+- **DragPrio** - Dragon priority display
+- **HidePlayerOnLeap** - Hide players on leap
+- **I4Helper** - I4 helper
+- **I4Timer** - I4 timer
+- **PositionNotifier** - Position notification
+- **Predev** - Predev timer
+- **PreEnterNotifier** - Pre-boss room entry notification
+- **PurplePad** - Purple Pad timer
+- **SimonSaysTimer** - Simon Says timer
+- **StormKillTime** - Storm kill time tracking
+- **TrueSplit** - Detailed split timer
 
-- **IntelliJ IDEA is heavily recommended.**
-- When selecting a project, **clone this repository** from GitHub.
-- It should automatically add the **VM arguments required for hotswapping classes and mixins**.  
-  If not, add them manually as described in the wiki page.  
-  *(You must use the JetBrains Runtime mentioned in the wiki for this to work.)*
+### Render Features
+- **HideArmor** - Hide armor
+- **NoFire** - Hide fire effects
+- **NoHurtCam** - Disable hurt camera shake
+- **RemoveGlow** - Remove glow effects
 
-## Project-Specific Notes
+### Skyblock Features
+- **AutoRefill** - Automatic item refill
+- **Soulflow** - Soulflow management
 
-- In `gradle.properties`, set `odin-version` to the version you want to build upon.  
-  *(Both version numbers and commit hashes are supported.)*
-- Under `src/main/java`, a `mixins` directory exists — this is where all your mixins should go.
-- Under `src/main/kotlin` is your main source directory, where you can add:
-    - Modules
-    - Other code  
+This project is licensed under the BSD 3-Clause License.  
