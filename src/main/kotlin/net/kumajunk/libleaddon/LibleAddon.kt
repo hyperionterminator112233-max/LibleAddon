@@ -7,9 +7,11 @@ import com.odtheking.odin.events.core.EventBus
 import com.odtheking.odin.features.ModuleManager
 import com.odtheking.odin.utils.network.hypixelapi.RequestUtils
 import com.odtheking.odin.utils.network.hypixelapi.RequestUtils.getUuid
+import com.odtheking.odin.features.Module
 import kotlinx.coroutines.launch
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
+import net.kumajunk.libleaddon.commands.addonCommand
 import net.kumajunk.libleaddon.commands.profileViewerCommand
 import net.kumajunk.libleaddon.features.impl.dungeon.*
 import net.kumajunk.libleaddon.features.impl.floor7.*
@@ -25,18 +27,24 @@ object LibleAddon : ClientModInitializer {
 
     var playerUUID: UUID? = null
     var playerName: String? = null
+    
+    /**
+     * List of all modules registered by this addon.
+     * Used by AddonGUI to filter and display only addon modules.
+     */
+    val addonModules = mutableSetOf<Module>()
 
     override fun onInitializeClient() {
         // Register commands by adding to the array
         ClientCommandRegistrationCallback.EVENT.register { dispatcher, _ ->
-            arrayOf(profileViewerCommand).forEach { commodore -> commodore.register(dispatcher) }
+            arrayOf(addonCommand, profileViewerCommand).forEach { commodore -> commodore.register(dispatcher) }
         }
 
         // Register objects to event bus by adding to the list
         listOf(this).forEach { EventBus.subscribe(it) }
 
         // Register modules by adding to the list
-        ModuleManager.registerModules(ModuleConfig("LibleAddon.json"),
+        val modules = arrayOf(
             // dungeon
             AutoPotionBag,
             BloodRushSplit,
@@ -80,6 +88,12 @@ object LibleAddon : ClientModInitializer {
             AutoRefill,
             Soulflow
         )
+        
+        // Store addon modules for filtering in AddonGUI
+        addonModules.addAll(modules)
+        
+        // Register modules with ModuleManager
+        ModuleManager.registerModules(ModuleConfig("LibleAddon.json"), *modules)
 
         val name = mc.user?.name?.takeIf { !it.matches(Regex("Player\\d{2,3}")) } ?: return
         scope.launch {

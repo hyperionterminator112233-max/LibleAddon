@@ -7,15 +7,38 @@ import com.odtheking.odin.OdinMod.scope
 import com.odtheking.odin.utils.calculateDungeonLevel
 import com.odtheking.odin.utils.formatNumber
 import com.odtheking.odin.utils.formatTime
+import com.odtheking.odin.utils.handlers.schedule
 import com.odtheking.odin.utils.network.hypixelapi.HypixelData
 import com.odtheking.odin.utils.network.hypixelapi.RequestUtils
 import com.odtheking.odin.utils.toFixed
 import kotlinx.coroutines.launch
+import net.kumajunk.libleaddon.clickgui.AddonGUI
+import net.kumajunk.libleaddon.clickgui.OdinGUI
 import net.kumajunk.libleaddon.utils.addonMessage
 import net.kumajunk.libleaddon.utils.sendMessage
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
+
+/**
+ * Command for opening the Addon settings GUI (LA features only).
+ * Accessible via /la or /libleaddon
+ * 
+ * Subcommands:
+ * - /la od or /la odin: Opens the Odin GUI (Odin features only, excludes LA)
+ */
+val addonCommand = Commodore("libleaddon", "la") {
+    runs {
+        schedule(0) { mc.setScreen(AddonGUI) }
+    }
+    
+    // Subcommand to open Odin GUI (Odin features only)
+    literal("od", "odin") {
+        runs {
+            schedule(0) { mc.setScreen(OdinGUI) }
+        }
+    }
+}
 
 /**
  * /lapv コマンド - プレイヤーのダンジョン統計を表示
