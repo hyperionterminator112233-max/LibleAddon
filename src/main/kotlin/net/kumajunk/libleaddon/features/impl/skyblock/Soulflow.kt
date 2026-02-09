@@ -1,12 +1,16 @@
 package net.kumajunk.libleaddon.features.impl.skyblock
 
+import com.odtheking.odin.OdinMod.scope
 import com.odtheking.odin.events.ChatPacketEvent
+import com.odtheking.odin.events.TickEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.events.core.onReceive
 import com.odtheking.odin.features.Module
 import com.odtheking.odin.utils.Colors
+import com.odtheking.odin.utils.network.hypixelapi.RequestUtils
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.render.textDim
+import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 
 object Soulflow : Module(
@@ -27,6 +31,11 @@ object Soulflow : Module(
     var lastGyro: Long = 0L
     var lastOverflowMana = 0
     private val overflowManaRegex = Regex("([0-9,]+)ʬ")
+    
+    // Auto-update settings
+    private var tickCounter = 0
+    private const val UPDATE_INTERVAL_TICKS = 36000 // 30 minutes (30 * 60 * 20 ticks)
+    private var isUpdating = false
 
     init {
         on<ChatPacketEvent> {
@@ -63,6 +72,48 @@ object Soulflow : Module(
                     soulflowCounts -= 15L
                 }
                 lastOverflowMana = value
+            }
+        }
+        
+        // Auto-update soulflow every 15 minutes
+        on<TickEvent.End> {
+            if (!enabled) return@on
+            
+            tickCounter++
+            
+            // Update every 15 minutes
+            if (tickCounter >= UPDATE_INTERVAL_TICKS) {
+                tickCounter = 0
+                updateSoulflowFromAPI()
+            }
+        }
+    }
+    
+    /**
+     * Fetch soulflow count from Hypixel API
+     */
+    private fun updateSoulflowFromAPI() {
+        if (isUpdating) return
+        
+        val name = mc.user?.name?.takeIf { !it.matches(Regex("Player\\d{2,3}")) } ?: return
+        
+        isUpdating = true
+        scope.launch {
+            try {
+                RequestUtils.getProfile(name)
+                    .fold(
+                        onSuccess = { playerInfo ->
+                            playerInfo.memberData?.let { memberData ->
+                                soulflowCounts = memberData.miscItemData.soulflow
+                                println("[LA] Updated soulflow count: $soulflowCounts")
+                            }
+                        },
+                        onFailure = { 
+                            println("[LA] Failed to update soulflow: ${it.message}")
+                        }
+                    )
+            } finally {
+                isUpdating = false
             }
         }
     }
