@@ -15,6 +15,7 @@ import com.odtheking.odin.utils.handlers.schedule
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.playSoundSettings
 import com.odtheking.odin.utils.render.textDim
+import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import net.kumajunk.libleaddon.LibleAddon.playerName
 import net.minecraft.client.gui.GuiGraphics
 
@@ -27,6 +28,7 @@ object PreEnterNotifier : Module(
     private val drawCentered by BooleanSetting("Draw Centered", true, desc = "Draw notifications centered on the screen.")
 
     // --- EE Notifier Settings ---
+    private val classNotify by BooleanSetting("Notify Class", false, desc = "Enable draw class notifications.")
     private val eeNotifyDisplayTime by NumberSetting("EE Display Time", 3.0, 1.0, 10.0, 0.5, desc = "Duration to display the EE notification.")
     private val eeNotifierColor by ColorSetting("EE Notifier Color", Colors.MINECRAFT_RED, desc = "Color of the EE notification text.")
     private val eeSoundDropdown by DropdownSetting("EE Sound")
@@ -56,6 +58,8 @@ object PreEnterNotifier : Module(
         textDimCentered(melodyMessage, 0, 0, melodyNotifyColor, drawCentered)
     }
 
+    private val partyRegex = Regex("^Party > (?:.+ )?(\\w+): (.+)")
+    private val eeRegex = Regex("\\b(at|inside|outside)\\b", RegexOption.IGNORE_CASE)
     // --- State ---
     private var isP2 = false
     private var drawEEHud = false
@@ -82,7 +86,6 @@ object PreEnterNotifier : Module(
             val msg = value.noControlCodes
             
             // Regex for Party chat: Party > [Rank] User: Message or Party > User: Message
-            val partyRegex = Regex("^Party > (?:.+ )?(\\w+): (.+)")
             val match = partyRegex.find(msg) ?: return@on
             
             val (player, message) = match.destructured
@@ -92,11 +95,15 @@ object PreEnterNotifier : Module(
             if (player == selfName) return@on
 
             // EE Notification (At/Inside/Outside)
-            if ((isP2 || forceP2True) && 
-                Regex("\\b(at|inside|outside)\\b", RegexOption.IGNORE_CASE).containsMatchIn(message)) {
+            if ((isP2 || forceP2True) &&
+                eeRegex.containsMatchIn(message)) {
 
-
-                eeMessage = "$player is $message!"
+                if (classNotify) {
+                    val playerClass = DungeonUtils.dungeonTeammates.find { it.name == player } ?: return@on
+                    eeMessage = "[${playerClass.clazz.name[0]}] $player is $message!"
+                } else {
+                    eeMessage = "$player is $message!"
+                }
                 drawEEHud = true
                 playSoundSettings(eeSoundSettings())
                 schedule((eeNotifyDisplayTime * 20).toInt()) { drawEEHud = false }
@@ -122,8 +129,12 @@ object PreEnterNotifier : Module(
                             }
                         }
                     }
-
-                    melodyMessage = "$player Has Melody! ($progress)"
+                    if (classNotify) {
+                        val playerClass = DungeonUtils.dungeonTeammates.find { it.name === player } ?: return@on
+                        melodyMessage = "[${playerClass.clazz.name[0]}] $player Has Melody! ($progress)"
+                    } else {
+                        melodyMessage = "$player Has Melody! ($progress)"
+                    }
                     drawMelodyHud = true
                     playSoundSettings(melodySoundSettings())
                     schedule((melodyNotifyDisplayTime * 20).toInt()) { drawMelodyHud = false }
