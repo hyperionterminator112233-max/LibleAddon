@@ -22,6 +22,11 @@ object ClassDupeNotifier : Module(
         default = false,
         desc = "Whether to allow duplicate Mages without notification."
     )
+    private val partyNotify by BooleanSetting(
+        name = "Notify to Party",
+        default = true,
+        desc = "Sends a message to party chat if someone fails to warp."
+    )
     private val soundDropdown by DropdownSetting("Sound Setting Dropdown")
     private val soundSettings = createSoundSettings("Notification Sound", "block.note_block.pling") { soundDropdown }
     private val hud by HUD(name, desc = "Displays duplicate classes Announcement on HUD.", false) {
@@ -60,7 +65,7 @@ object ClassDupeNotifier : Module(
                     drawHUD = true
                     playSoundSettings(soundSettings())
                     val dupeNames = classes.joinToString(", ")
-                    sendCommand("pc Duplicate class: $dupeNames")
+                    if (partyNotify) sendCommand("pc Duplicate class: $dupeNames")
                     addonMessage("§cDuplicate classes detected: §b$dupeNames")
                     schedule(20) { drawHUD = false}
                     return@on

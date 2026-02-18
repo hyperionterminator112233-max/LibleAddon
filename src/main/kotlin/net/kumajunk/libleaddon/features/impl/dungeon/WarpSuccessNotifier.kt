@@ -1,5 +1,6 @@
 package net.kumajunk.libleaddon.features.impl.dungeon
 
+import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.clickgui.settings.impl.DropdownSetting
 import com.odtheking.odin.events.ChatPacketEvent
@@ -21,6 +22,11 @@ object WarpSuccessNotifier : Module(
     description = "Notify when someone has not warped into the dungeon"
 ){
 
+    private val partyNotify by BooleanSetting(
+        name = "Notify to Party",
+        default = true,
+        desc = "Sends a message to party chat if someone fails to warp."
+    )
     private val hud by HUD(name, desc = "Displays warp is not success Announcement on HUD.", false) {
         if (!it && !drawHUD) return@HUD 0 to 0
         textDim("SOMEONE IS NOT WARPED", 0, 0, color)
@@ -44,7 +50,7 @@ object WarpSuccessNotifier : Module(
                 val count = getDungeonPlayerClasses().size
                 if (count < 5) {
                     playSoundSettings(soundSettings())
-                    sendCommand("pc SOMEONE IS NOT WARPED!!!")
+                    if (partyNotify) sendCommand("pc SOMEONE IS NOT WARPED!!!")
                     drawHUD = true
                     schedule(40) {
                         drawHUD = false
