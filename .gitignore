@@ -2,6 +2,7 @@
 .gradle/
 .kotlin/
 .vscode/
+.agent/
 
 build/
 run/
