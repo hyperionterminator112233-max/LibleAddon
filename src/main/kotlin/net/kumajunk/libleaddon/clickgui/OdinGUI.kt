@@ -13,7 +13,7 @@ import com.odtheking.odin.utils.Colors
 import com.odtheking.odin.utils.ui.HoverHandler
 import com.odtheking.odin.utils.ui.animations.EaseOutAnimation
 import com.odtheking.odin.utils.ui.rendering.NVGRenderer
-import com.odtheking.odin.utils.ui.rendering.NVGSpecialRenderer
+import com.odtheking.odin.utils.ui.rendering.NVGPIPRenderer
 import net.kumajunk.libleaddon.LibleAddon
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
@@ -77,7 +77,7 @@ object OdinGUI : Screen(Component.literal("Odin Settings")) {
     val gray26 = Color(26, 26, 26)
 
     override fun render(context: GuiGraphics, mouseX: Int, mouseY: Int, deltaTicks: Float) {
-        NVGSpecialRenderer.draw(context, 0, 0, context.guiWidth(), context.guiHeight()) {
+        NVGPIPRenderer.draw(context, 0, 0, context.guiWidth(), context.guiHeight()) {
             val scaledMouseX = odinMouseX / ClickGUIModule.getStandardGuiScale()
             val scaledMouseY = odinMouseY / ClickGUIModule.getStandardGuiScale()
 
