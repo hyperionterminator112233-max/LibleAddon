@@ -1,11 +1,13 @@
 package net.kumajunk.libleaddon.features.impl.floor7
 
+import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.WorldEvent
 import com.odtheking.odin.events.core.on
 import com.odtheking.odin.features.Module
 import com.odtheking.odin.utils.Color
+import com.odtheking.odin.utils.alert
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.render.textDim
 
@@ -24,8 +26,21 @@ object CrystalNotifier : Module(
         desc = "Color of the 'Place Crystal!' notification text."
     )
 
+    private val notifyPlaced by BooleanSetting(
+        name = "Notify placed crystal",
+        desc = "Sends a notification when the crystal is successfully placed."
+    )
+
     // P1フェーズ状態管理（Maxor開始～Storm開始）
     private var isP1 = false
+
+    private var hasCrystal = false
+        set(value) {
+            if (field && !value && notifyPlaced) {
+                alert("§aPlaced!", true)
+            }
+            field = value
+        }
 
     // チャットパターン
     private val maxorPattern = Regex("""^\[BOSS] Maxor: (.+)$""")
@@ -48,8 +63,10 @@ object CrystalNotifier : Module(
             val itemName = item.hoverName.string.noControlCodes
 
             if (itemName.contains("Energy Crystal")) {
+                hasCrystal = true
                 textDim("Place Crystal!", 0, 0, notifyColor)
             } else {
+                hasCrystal = false
                 0 to 0
             }
         }
