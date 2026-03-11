@@ -60,6 +60,7 @@ object LibleAddon : ClientModInitializer {
             StatsViewer,
             WarpCooldown,
             WarpSuccessNotifier,
+            TrueSplit,
 
             // floor7
             CoreTime,
@@ -76,7 +77,6 @@ object LibleAddon : ClientModInitializer {
             PurplePad,
             SimonSaysTimer,
             StormKillTime,
-            TrueSplit,
 
             // render
             HideArmor,

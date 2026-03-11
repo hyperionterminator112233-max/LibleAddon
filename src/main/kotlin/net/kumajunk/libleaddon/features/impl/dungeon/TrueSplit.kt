@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.dungeon
 
 import com.odtheking.odin.OdinMod.scope
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
@@ -13,6 +13,7 @@ import com.odtheking.odin.utils.PersonalBest
 import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.render.textDim
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonListener
+import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import com.odtheking.odin.utils.toFixed
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -22,44 +23,53 @@ import net.minecraft.network.chat.Style
 
 object TrueSplit : Module(
     name = "True Splits(LA)",
-    description = "Advanced split timers for Floor 7 and Master Mode 7."
+    description = "Advanced split timers for all dungeon floors."
 ) {
     private val pb = PersonalBest(this, "SplitsPB")
 
     private val isF7OrM7: Boolean
         get() = DungeonListener.floor?.floorNumber == 7
 
+    private val inDungeons: Boolean
+        get() = DungeonUtils.inDungeons
+
     private val mainHud by HUD("Main Splits", "Displays the main split timers.") { example ->
-        if (!example && !isF7OrM7) return@HUD 0 to 0
+        if (!example && !inDungeons) return@HUD 0 to 0
+
+        val floorNum = DungeonListener.floor?.floorNumber ?: 7
+        val floorToUse = if (example) 7 else floorNum
+        val activeLabels = getStageLabelsForFloor(floorToUse)
+
         val lines = if (example) {
             listOf(
-                createHudText(0, "Blood Open", 1500L, 20L),
-                createHudText(1, "Watcher", 5000L, 100L),
-                createHudText(2, "Portal", 5000L, 100L),
-                createHudText(3, "Maxor", 5000L, 100L),
-                createHudText(4, "Storm", 5000L, 100L),
-                createHudText(5, "Terminals", 5000L, 100L),
-                createHudText(6, "Goldor", 5000L, 100L),
-                createHudText(7, "Necron", 5000L, 100L),
-                createHudText(8, "Dragons", 5000L, 100L)
+                createHudText(0, "Blood Open", 1500L, 20L, 7),
+                createHudText(1, "Watcher", 5000L, 100L, 7),
+                createHudText(2, "Portal", 5000L, 100L, 7),
+                createHudText(3, "Maxor", 5000L, 100L, 7),
+                createHudText(4, "Storm", 5000L, 100L, 7),
+                createHudText(5, "Terminals", 5000L, 100L, 7),
+                createHudText(6, "Goldor", 5000L, 100L, 7),
+                createHudText(7, "Necron", 5000L, 100L, 7),
+                createHudText(8, "Dragons", 5000L, 100L, 7)
             )
         } else {
             buildList {
                 val runSnapshot = currentRun.toList()
 
                 runSnapshot.forEachIndexed { index, split ->
-                    add(createHudText(index, split.name, split.time, split.tick))
+                    add(createHudText(index, split.name, split.time, split.tick, floorToUse))
                 }
 
-                if (currentStage > 0 && currentStage <= STAGE_LABELS.size) {
+                if (currentStage > 0 && currentStage <= activeLabels.size) {
                     val idx = currentStage - 1
-                    val label = STAGE_LABELS[idx].first
+                    val label = activeLabels[idx].first
                     add(
                         createHudText(
                             idx,
                             label,
                             System.currentTimeMillis() - startTimestamp,
-                            tickCounter - startTick
+                            tickCounter - startTick,
+                            floorToUse
                         )
                     )
                 }
@@ -72,9 +82,11 @@ object TrueSplit : Module(
         var maxWidth = 0
 
         lines.forEach { line ->
-            val dim = textDim(line, 0, yOffset)
-            maxWidth = maxOf(maxWidth, dim.first)
-            yOffset += dim.second
+            if (line.isNotEmpty()) {
+                val dim = textDim(line, 0, yOffset)
+                maxWidth = maxOf(maxWidth, dim.first)
+                yOffset += dim.second
+            }
         }
 
         maxWidth to yOffset
@@ -127,7 +139,7 @@ object TrueSplit : Module(
     private val breakdownEnabled: Boolean by BooleanSetting(
         "Breakdown",
         true,
-        desc = "Toggle the breakdown HUD."
+        desc = "Toggle the breakdown HUD. (Floor 7 Only)"
     )
     private val scrollLength: Int by NumberSetting(
         "Breakdown Scroll Length",
@@ -186,11 +198,11 @@ object TrueSplit : Module(
         }
 
         on<TickEvent.Server> {
-            if (!isF7OrM7) return@on
+            if (!inDungeons) return@on
             tickCounter++
 
-            // Scroll logic
-            if (currentBreakdownLines.isNotEmpty() && currentBreakdownLines.size > scrollLength) {
+            // Scroll logic (F7)
+            if (isF7OrM7 && currentBreakdownLines.isNotEmpty() && currentBreakdownLines.size > scrollLength) {
                 val now = System.currentTimeMillis()
                 if (now - lastScrollTime > scrollDelay * 1000L) {
                     currentBreakdownScrollIndex = (currentBreakdownLines.size - scrollLength).coerceAtLeast(0)
@@ -200,7 +212,7 @@ object TrueSplit : Module(
         }
 
         on<ChatPacketEvent> {
-            if (!isF7OrM7) return@on
+            if (!inDungeons) return@on
             val msg = value.noControlCodes
             handleChat(msg)
         }
@@ -237,8 +249,9 @@ object TrueSplit : Module(
         stormEnraged = false
     }
 
-
     private fun handleChat(msg: String) {
+        val floorNum = DungeonListener.floor?.floorNumber ?: 7
+
         // Start check
         if (msg == "[NPC] Mort: Here, I found this map when I first entered the dungeon.") {
             reset()
@@ -249,59 +262,77 @@ object TrueSplit : Module(
             return
         }
         if (regex.containsMatchIn(msg)) {
-            scope.launch {
-                Thread.sleep(500)
-                printBreakdown()
+            if (isF7OrM7) {
+                scope.launch {
+                    Thread.sleep(500)
+                    printBreakdown()
+                }
             }
         }
 
-        // Breakdown Logic (Must run before Main Splits to capture end-of-stage events like Necron Kill)
-        handleBreakdown(msg)
+        // F7 Breakdown Logic
+        if (isF7OrM7) {
+            handleBreakdown(msg)
+        }
 
         // Main Splits Logic
-        val currentCriteria = MAINSPLITSTRINGS.getOrNull(currentStage)
-
-        // Special case for Blood Start which has multiple messages
-        if (currentStage == 1) {
-            if (BLOODSTARTMESSAGES.any { msg == it }) {
-                advanceStage("Blood Open")
+        if (floorNum == 7) {
+            val currentCriteria = MAINSPLITSTRINGS_F7.getOrNull(currentStage)
+            if (currentStage == 1) {
+                if (BLOODSTARTMESSAGES.any { msg == it }) advanceStage("Blood Open", floorNum)
+            } else if (currentStage == 6 && msg == "The Core entrance is opening!") {
+                if (termStage == 3) addBreakdownEntry("Section 4")
+                advanceStage("Terminals", floorNum)
+            } else if (currentCriteria != null && msg == currentCriteria) {
+                val stageName = STAGE_LABELS_F7.getOrNull(currentStage - 1)?.first ?: "Unknown"
+                advanceStage(stageName, floorNum)
+                if (currentStage == 4 && bossEntry) recordBossEntry()
             }
-        } else if (currentStage == 6 && msg == "The Core entrance is opening!") { // Goldor special case
-            if (termStage == 3) addBreakdownEntry("Section 4") // Final section done
-            advanceStage("Terminals")
-        } else if (currentCriteria != null && msg == currentCriteria) {
-            // currentStage is index in MAINSPLITSTRINGS we matched.
-            // We want to label the STAGE that JUST finished.
-            // If we just matched Watcher (Stage 2), we finished "Watcher" segment.
-            // STAGE_LABELS[1] is "Watcher".
-            // So label is STAGE_LABELS[currentStage - 1].
-            val stageName = STAGE_LABELS.getOrNull(currentStage - 1)?.first ?: "Unknown"
-            advanceStage(stageName)
-
-            // Boss Entry Logic (When Portal split ends / Maxor starts)
-            if (currentStage == 4 && bossEntry) {
-                val now = System.currentTimeMillis()
-                val entryTime = now - dungeonStartTime
-                val entryTick = tickCounter
-
-                pb.time("Boss Entry", entryTime / 1000f, "s", "§bBoss Entry §6> §a", true)
-                currentRun.add(SplitEntry("Boss Entry", entryTime, entryTick))
+        } else if (floorNum == 6) { // F6 Logic
+            if (currentStage == 1) {
+                if (BLOODSTARTMESSAGES.any { msg == it }) advanceStage("Blood Open", floorNum)
+            } else if (currentStage == 2) {
+                if (msg == "[BOSS] The Watcher: You have proven yourself. You may pass.") advanceStage("Watcher", floorNum)
+            } else if (currentStage == 3) {
+                if (msg == "[BOSS] Sadan: So you made it all the way here... Now you wish to defy me? Sadan?!") {
+                    advanceStage("Portal", floorNum)
+                }
+            } else if (currentStage == 4) {
+                if (msg == "[BOSS] Sadan: ENOUGH!") advanceStage("Terracottas", floorNum)
+            } else if (currentStage == 5) {
+                if (msg == "[BOSS] Sadan: You did it. I understand now, you have earned my respect.") {
+                    advanceStage("Giants", floorNum)
+                }
+            } else if (currentStage == 6) {
+                if (msg == "                             > EXTRA STATS <") advanceStage("Boss Kill", floorNum)
+            }
+        } else { // F1-F5 Logic
+            if (currentStage == 1) {
+                if (BLOODSTARTMESSAGES.any { msg == it }) advanceStage("Blood Open", floorNum)
+            } else if (currentStage == 2) {
+                if (msg == "[BOSS] The Watcher: You have proven yourself. You may pass.") advanceStage("Watcher", floorNum)
+            } else if (currentStage == 3) {
+                if (msg.startsWith("[BOSS] ") && !msg.startsWith("[BOSS] The Watcher:")) {
+                    advanceStage("Portal", floorNum)
+                }
+            } else if (currentStage == 4) {
+                if (msg == "                             > EXTRA STATS <") advanceStage("Boss Kill", floorNum)
             }
         }
     }
 
-    private fun advanceStage(stageName: String) {
+    private fun advanceStage(stageName: String, floorNum: Int) {
         val now = System.currentTimeMillis()
         val currentTick = tickCounter
 
         val timeDiff = now - startTimestamp
         val tickDiff = currentTick - startTick
 
-        // Check PB using Odin's PersonalBest
-        // It handles internal logic for "Is it a PB?" and "Send message"
-        // Key is stageName, Time is seconds (Float)
-        if (stageName != "Dragons" || (DungeonListener.floor?.floorNumber == 7 && DungeonListener.floor?.isMM == true)) {
-            pb.time(stageName, timeDiff / 1000f, "s", "§b$stageName §6> §a", true)
+        // Check PB only for Floor 7
+        if (floorNum == 7) {
+            if (stageName != "Dragons" || (DungeonListener.floor?.isMM == true)) {
+                pb.time(stageName, timeDiff / 1000f, "s", "§b$stageName §6> §a", true)
+            }
         }
 
         currentRun.add(SplitEntry(stageName, timeDiff, tickDiff))
@@ -312,23 +343,32 @@ object TrueSplit : Module(
 
         currentStage++
 
-        // Trigger breakdown header for new stage if applicable
-        addBreakdownHeader(currentStage)
+        // Trigger breakdown header for new stage if F7
+        if (floorNum == 7) {
+            addBreakdownHeader(currentStage)
+        }
+    }
+
+    private fun recordBossEntry() {
+        val now = System.currentTimeMillis()
+        val entryTime = now - dungeonStartTime
+        val entryTick = tickCounter
+
+        pb.time("Boss Entry", entryTime / 1000f, "s", "§bBoss Entry §6> §a", true)
+        currentRun.add(SplitEntry("Boss Entry", entryTime, entryTick))
     }
 
     private fun addBreakdownHeader(stage: Int) {
         when (stage) {
-            4 -> currentBreakdownLines.add("§7§n§lMAXOR BREAKDOWN") // Entering Maxor
-            5 -> currentBreakdownLines.add("§7§n§lSTORM BREAKDOWN") // Entering Storm
-            6 -> currentBreakdownLines.add("§7§n§lGOLDOR BREAKDOWN") // Entering Goldor (Terminals)
-            // 7 -> Entering Goldor Tunnel. Still Goldor phase. Do not add Necron header yet.
-            8 -> currentBreakdownLines.add("§7§n§lNECRON BREAKDOWN") // Entering Necron (Necron Start)
-            9 -> if (DungeonListener.floor?.floorNumber == 7 && DungeonListener.floor?.isMM == true)
-                currentBreakdownLines.add("§7§n§lDRAGONS BREAKDOWN") // Entering Dragons (M7 only)
+            4 -> currentBreakdownLines.add("§7§n§lMAXOR BREAKDOWN")
+            5 -> currentBreakdownLines.add("§7§n§lSTORM BREAKDOWN")
+            6 -> currentBreakdownLines.add("§7§n§lGOLDOR BREAKDOWN")
+            8 -> currentBreakdownLines.add("§7§n§lNECRON BREAKDOWN")
+            9 -> if (DungeonListener.floor?.isMM == true)
+                currentBreakdownLines.add("§7§n§lDRAGONS BREAKDOWN")
         }
         lastBreakdownTime = System.currentTimeMillis()
         lastBreakdownTick = tickCounter
-        // Auto scroll
         currentBreakdownScrollIndex = (currentBreakdownLines.size - scrollLength).coerceAtLeast(0)
     }
 
@@ -339,7 +379,7 @@ object TrueSplit : Module(
             if (passedMaxorCrystals == 2) {
                 addBreakdownEntry("Crystals")
             }
-        } else if (msg == MAINSPLITSTRINGS[4]) { // Storm entry message
+        } else if (msg == MAINSPLITSTRINGS_F7[4]) {
             if (passedMaxorCrystals >= 2) {
                 addBreakdownEntry("Maxor Kill")
             }
@@ -348,8 +388,8 @@ object TrueSplit : Module(
         // Storm
         if (msg == "⚠ Storm is enraged! ⚠") {
             stormEnraged = true
-            addBreakdownEntry("First Pillar Kill") // Assuming straight to enraged means p1 done? Or just simplify
-        } else if (msg == MAINSPLITSTRINGS[5]) { // Goldor entry
+            addBreakdownEntry("First Pillar Kill")
+        } else if (msg == MAINSPLITSTRINGS_F7[5]) {
             addBreakdownEntry("Storm Kill")
         }
 
@@ -358,8 +398,7 @@ object TrueSplit : Module(
             gateDestroyed = true
             checkForwardTermStage()
         }
-        val termMatch =
-            Regex(".+ (?:activated|completed) a .+! \\((\\d+)/(\\d+)\\)").find(msg)
+        val termMatch = Regex(".+ (?:activated|completed) a .+! \\((\\d+)/(\\d+)\\)").find(msg)
 
         if (termMatch != null) {
             val (currentStr, totalStr) = termMatch.destructured
@@ -373,9 +412,9 @@ object TrueSplit : Module(
         }
 
         // Necron
-        if (msg == MAINSPLITSTRINGS[7]) { // Necron Start (Goldor End)
+        if (msg == MAINSPLITSTRINGS_F7[7]) { // Necron Start
             addBreakdownEntry("Goldor Kill")
-        } else if (msg == MAINSPLITSTRINGS[8]) { // "All this, for nothing..."
+        } else if (msg == MAINSPLITSTRINGS_F7[8]) { // Necron Kill
             addBreakdownEntry("Necron Kill")
         }
 
@@ -383,7 +422,7 @@ object TrueSplit : Module(
         if (DRAGONKILLSTRINGS.any { msg == it }) {
             dragonCount++
             if (dragonCount > 5) return
-            if (dragonCount > 2) { // 3rd, 4th, 5th dragons
+            if (dragonCount > 2) {
                 addBreakdownEntry(if (dragonCount == 3) "Third Dragon Kill" else if (dragonCount == 4) "Fourth Dragon Kill" else "Fifth Dragon Kill")
             }
         }
@@ -398,7 +437,7 @@ object TrueSplit : Module(
             val label = when (termStage) {
                 1 -> "Section 1"
                 2 -> "Section 2"
-                3 -> "Section 3" // Wait, logic might be slightly off compared to JS, JS does section 1,2,3,4 then goldor kill
+                3 -> "Section 3"
                 else -> "Unknown Section"
             }
             addBreakdownEntry(label)
@@ -425,7 +464,7 @@ object TrueSplit : Module(
         }
 
         sections.forEach { (header, lines) ->
-            if (header == "Global" && lines.isEmpty()) return@forEach // Skip empty start
+            if (header == "Global" && lines.isEmpty()) return@forEach
 
             val cleanHeader = header.replace("§7§n§l", "").replace(" BREAKDOWN", "")
             val hoverContent = Component.empty()
@@ -448,7 +487,6 @@ object TrueSplit : Module(
         currentBreakdownLines.add("§b$label > §a${(diff / 1000f).toFixed(2)}s")
         lastBreakdownTime = now
         lastBreakdownTick = tickCounter
-        // Auto scroll logic
         currentBreakdownScrollIndex = (currentBreakdownLines.size - scrollLength).coerceAtLeast(0)
     }
 
@@ -463,7 +501,6 @@ object TrueSplit : Module(
                 3 -> "Section 4"
                 else -> "Terminals"
             }
-
             7 -> "Goldor Kill"
             8 -> "Necron Kill"
             9 -> "Dragons"
@@ -471,14 +508,23 @@ object TrueSplit : Module(
         }
     }
 
-    private fun createHudText(stage: Int, label: String, realTime: Long, tickTime: Long): String {
-        // Hide Dragons split if not in Master Mode
+    private fun getStageLabelsForFloor(floor: Int): List<Pair<String, String>> {
+        return when (floor) {
+            7 -> STAGE_LABELS_F7
+            6 -> STAGE_LABELS_F6
+            else -> STAGE_LABELS_GENERAL
+        }
+    }
+
+    private fun createHudText(stage: Int, label: String, realTime: Long, tickTime: Long, floorNum: Int): String {
+        // Hide Dragons split if not in Master Mode F7
         if (label == "Dragons") {
             val floor = DungeonListener.floor
-            if (floor == null || floor.floorNumber != 7 || !floor.isMM) return ""
+            if (floor == null || floorNum != 7 || !floor.isMM) return ""
         }
 
-        val colorConstraint = STAGE_LABELS.find { it.first == label }
+        val activeLabels = getStageLabelsForFloor(floorNum)
+        val colorConstraint = activeLabels.find { it.first == label }
         val baseColor = colorConstraint?.second ?: if (label == "Boss Entry") "§b" else "§f"
         val activeMarker = if (stage == currentStage - 1) "§n" else ""
 
@@ -503,17 +549,17 @@ object TrueSplit : Module(
         "[BOSS] The Watcher: Things feel a little more roomy now, eh?"
     )
 
-    private val MAINSPLITSTRINGS = listOf(
+    private val MAINSPLITSTRINGS_F7 = listOf(
         "[NPC] Mort: Here, I found this map when I first entered the dungeon.", // 0 (Start)
-        "BLOOD_START_PLACEHOLDER", // 1 (Blood Open) - Handled separately
+        "BLOOD_START_PLACEHOLDER", // 1 (Blood Open)
         "[BOSS] The Watcher: You have proven yourself. You may pass.", // 2 (Watcher)
         "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!", // 3 (Portal Entry / Maxor Start)
         "[BOSS] Storm: Pathetic Maxor, just like expected.", // 4 (Storm Start)
         "[BOSS] Goldor: Who dares trespass into my domain?", // 5 (Goldor Start)
-        "The Core entrance is opening!", // 6 (Terminals Done / Goldor Phase 2?) 
+        "The Core entrance is opening!", // 6 (Terminals Done) 
         "[BOSS] Necron: You went further than any human before, congratulations.", // 7 (Necron Start)
-        "[BOSS] Necron: All this, for nothing...", // 8 (Necron Kill / End F7)
-        "                             > EXTRA STATS <",
+        "[BOSS] Necron: All this, for nothing...", // 8 (Necron Kill)
+        "                             > EXTRA STATS <" // 9 (End)
     )
 
     val DRAGONKILLSTRINGS = listOf(
@@ -522,7 +568,7 @@ object TrueSplit : Module(
         "[BOSS] Wither King: My soul is disposable."
     )
 
-    private val STAGE_LABELS = listOf(
+    private val STAGE_LABELS_F7 = listOf(
         "Blood Open" to "§2",
         "Watcher" to "§b",
         "Portal" to "§d",
@@ -532,5 +578,21 @@ object TrueSplit : Module(
         "Goldor" to "§6",
         "Necron" to "§c",
         "Dragons" to "§4"
+    )
+
+    private val STAGE_LABELS_F6 = listOf(
+        "Blood Open" to "§2",
+        "Watcher" to "§b",
+        "Portal" to "§d",
+        "Terracottas" to "§c",
+        "Giants" to "§4",
+        "Boss Kill" to "§5"
+    )
+
+    private val STAGE_LABELS_GENERAL = listOf(
+        "Blood Open" to "§2",
+        "Watcher" to "§b",
+        "Portal" to "§d",
+        "Boss Kill" to "§c"
     )
 }
