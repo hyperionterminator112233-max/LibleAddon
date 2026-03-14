@@ -6,7 +6,6 @@ import com.odtheking.odin.events.core.on
 import com.odtheking.odin.events.core.onReceive
 import com.odtheking.odin.features.Module
 import com.odtheking.odin.utils.Color
-import com.odtheking.odin.utils.itemId
 import com.odtheking.odin.utils.render.textDim
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.sounds.SoundEvents
@@ -33,9 +32,7 @@ object ShieldCooldown : Module(
     init {
         onReceive<ClientboundSoundPacket> { event ->
             val packet = event.packet as? ClientboundSoundPacket ?: return@onReceive
-            val player = mc.player ?: return@onReceive
-            val isHyperion = player.mainHandItem.itemId == "HYPERION"
-            if (packet.sound.value() == SoundEvents.ZOMBIE_VILLAGER_CURE && isHyperion) {
+            if (packet.sound.value() == SoundEvents.ZOMBIE_VILLAGER_CURE && packet.pitch == 0.6984127f && packet.volume == 1.0f) {
                 cooldown = 100
             }
         }
