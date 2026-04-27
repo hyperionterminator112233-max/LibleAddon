@@ -1,6 +1,6 @@
 package net.kumajunk.libleaddon.mixin;
 
-import net.kumajunk.libleaddon.features.impl.floor7.HidePlayerOnLeap;
+import net.kumajunk.libleaddon.features.impl.boss.HidePlayerOnLeap;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.Entity;

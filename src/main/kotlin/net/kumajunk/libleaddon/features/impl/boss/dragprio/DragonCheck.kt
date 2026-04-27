@@ -1,7 +1,7 @@
-package net.kumajunk.libleaddon.features.impl.floor7.dragprio
+package net.kumajunk.libleaddon.features.impl.boss.dragprio
 
 import com.odtheking.odin.OdinMod
-import com.odtheking.odin.features.impl.floor7.WitherDragons
+import com.odtheking.odin.features.impl.boss.WitherDragons
 import com.odtheking.odin.utils.modMessage
 import com.odtheking.odin.utils.renderPos
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket

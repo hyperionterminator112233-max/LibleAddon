@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.boss
 
 import com.odtheking.odin.clickgui.settings.impl.ColorSetting
 import com.odtheking.odin.events.ChatPacketEvent
@@ -10,37 +10,37 @@ import com.odtheking.odin.utils.noControlCodes
 import com.odtheking.odin.utils.render.textDim
 
 /**
- * Floor7 P2フェーズ中にStormのCrush攻撃のタイマーを表示するモジュール
- * Crushが発生してから1秒（20tick）後に着地するため、カウントダウンを表示
+ * Floor7 P2フェーズ中にPurple Pad（紫パッド）のタイマーを表示するモジュール
+ * Stormのセリフ検出から96tick（4.8秒）をカウントダウン
  */
-object CrushTimer : Module(
-    name = "Crush Timer(LA)",
-    description = "Displays a countdown timer for Storm's Crush attack in Floor 7."
+object PurplePad : Module(
+    name = "Purple Pad Timer(LA)",
+    description = "Displays a countdown timer for Purple Pad in Floor 7 Phase 2."
 ) {
     // 設定項目
     private val timerColor by ColorSetting(
         name = "Timer Color",
-        default = Color(255, 85, 85),
+        default = Color(170, 0, 170),  // 紫色
         allowAlpha = false,
-        desc = "Color of the Crush countdown timer."
+        desc = "Color of the Purple Pad countdown timer."
     )
 
     // タイマー管理
-    private var crushEndTime = 0L
+    private var purplePadEndTime = 0L
     private var isTimerActive = false
 
-    // Stormのセリフパターン (Crush攻撃検出)
-    private val crushPattern = Regex("""^\[BOSS] Storm: (Ouch, that hurt!|Oof)$""")
+    // Stormのセリフパターン (Purple Pad攻撃検出)
+    private val purplePadPattern = Regex("""^\[BOSS] Storm: (ENERGY HEED MY CALL|THUNDER LET ME BE YOUR CATALYST)!$""")
 
     // HUD設定
-    private val timerHud by HUD("Crush Timer", desc = "Displays Crush countdown timer.", toggleable = false) { example ->
+    private val timerHud by HUD("Purple Pad Timer", desc = "Displays Purple Pad countdown timer.", toggleable = false) { example ->
         if (example) {
             // プレビュー表示
-            textDim("1.00", 0, 0, timerColor)
+            textDim("4.80", 0, 0, timerColor)
         } else if (!isTimerActive) {
             0 to 0
         } else {
-            val remainingMs = crushEndTime - System.currentTimeMillis()
+            val remainingMs = purplePadEndTime - System.currentTimeMillis()
             if (remainingMs <= 0) {
                 isTimerActive = false
                 0 to 0
@@ -54,19 +54,19 @@ object CrushTimer : Module(
     }
 
     init {
-        // Crushパターン検出でタイマー開始
+        // Purple Padパターン検出でタイマー開始
         on<ChatPacketEvent> {
             val msg = value.noControlCodes
-            if (crushPattern.matches(msg)) {
-                // 20tick = 1秒 (1000ms) のカウントダウン開始
-                crushEndTime = System.currentTimeMillis() + 1000L
+            if (purplePadPattern.matches(msg)) {
+                // 96tick = 4.8秒 (4800ms) のカウントダウン開始
+                purplePadEndTime = System.currentTimeMillis() + 4800L
                 isTimerActive = true
             }
         }
 
         // ワールドアンロード時にリセット
         on<WorldEvent.Unload> {
-            crushEndTime = 0L
+            purplePadEndTime = 0L
             isTimerActive = false
         }
     }

@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.boss
 
 import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.TickEvent
@@ -10,7 +10,7 @@ import com.odtheking.odin.utils.sendCommand
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonClass
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import com.odtheking.odin.utils.skyblock.dungeon.M7Phases
-import net.kumajunk.libleaddon.features.impl.floor7.PositionNotifier.CheckBox.isInsideBox
+import net.kumajunk.libleaddon.features.impl.boss.PositionNotifier.CheckBox.isInsideBox
 
 /**
  * Floor7の各フェーズで特定の位置に到達した際にパーティーチャットでアナウンスするモジュール

@@ -32,7 +32,6 @@ import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import net.minecraft.world.phys.AABB
-import kotlin.text.toDouble
 import java.awt.Color as AwtColor
 
 /*
@@ -196,7 +195,7 @@ object DungeonMap : Module(
                     matrices.popMatrix()
                 }
 
-                player.locationSkin?.let { skin ->
+                player.playerSkin?.let { skin ->
                     matrices.rotate(Math.toRadians(180.0 + player.mapRenderYaw()).toFloat())
 
                     val baseSize = 10
@@ -208,7 +207,7 @@ object DungeonMap : Module(
                     }
 
                     if (playerHeadSize != 0f) {
-                        PlayerFaceRenderer.draw(this, skin, -scaledSize / 2, -scaledSize / 2, scaledSize, false, false, -1)
+                        PlayerFaceRenderer.draw(this, skin.body().texturePath(), -scaledSize / 2, -scaledSize / 2, scaledSize, false, false, -1)
                     }
                 }
 

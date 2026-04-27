@@ -1,13 +1,13 @@
-package net.kumajunk.libleaddon.features.impl.floor7.dragprio
+package net.kumajunk.libleaddon.features.impl.boss.dragprio
 
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.priorityDragon
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.currentTick
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.DragonCheck.lastDragonDeath
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.priorityDragon
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.currentTick
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.DragonCheck.lastDragonDeath
 import com.odtheking.odin.utils.Color
 import com.odtheking.odin.utils.Colors
 import com.odtheking.odin.utils.alert
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.DragonPriority.findPriority
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.DragonPriority.findPriority
 import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket

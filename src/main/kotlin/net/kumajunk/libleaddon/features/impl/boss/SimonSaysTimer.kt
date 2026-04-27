@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.boss
 
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
 import com.odtheking.odin.clickgui.settings.impl.NumberSetting

@@ -1,16 +1,16 @@
-package net.kumajunk.libleaddon.features.impl.floor7.dragprio
+package net.kumajunk.libleaddon.features.impl.boss.dragprio
 
 import com.odtheking.odin.utils.equalsOneOf
 import com.odtheking.odin.utils.modMessage
 import com.odtheking.odin.utils.skyblock.dungeon.Blessing
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonClass
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.dragonPriorityToggle
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.easyPower
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.normalPower
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.paulBuff
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.soloDebuff
-import net.kumajunk.libleaddon.features.impl.floor7.DragPrio.soloDebuffOnAll
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.dragonPriorityToggle
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.easyPower
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.normalPower
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.paulBuff
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.soloDebuff
+import net.kumajunk.libleaddon.features.impl.boss.DragPrio.soloDebuffOnAll
 
 /*
  * code from odinFabric (https://github.com/odtheking/OdinFabric)

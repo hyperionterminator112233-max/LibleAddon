@@ -14,7 +14,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.kumajunk.libleaddon.commands.addonCommand
 import net.kumajunk.libleaddon.commands.profileViewerCommand
 import net.kumajunk.libleaddon.features.impl.dungeon.*
-import net.kumajunk.libleaddon.features.impl.floor7.*
+import net.kumajunk.libleaddon.features.impl.boss.*
 import net.kumajunk.libleaddon.features.impl.render.HideArmor
 import net.kumajunk.libleaddon.features.impl.render.NoFire
 import net.kumajunk.libleaddon.features.impl.render.NoHurtCam
@@ -62,7 +62,7 @@ object LibleAddon : ClientModInitializer {
             WarpSuccessNotifier,
             TrueSplit,
 
-            // floor7
+            // boss
             CoreTime,
             CrushTimer,
             CrystalNotifier,

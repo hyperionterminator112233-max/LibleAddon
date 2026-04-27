@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.boss
 
 import com.odtheking.odin.events.ChatPacketEvent
 import com.odtheking.odin.events.core.on

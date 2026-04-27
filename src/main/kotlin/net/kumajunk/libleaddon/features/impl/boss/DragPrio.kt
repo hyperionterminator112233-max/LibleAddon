@@ -1,4 +1,4 @@
-package net.kumajunk.libleaddon.features.impl.floor7
+package net.kumajunk.libleaddon.features.impl.boss
 
 import com.odtheking.odin.clickgui.settings.Setting.Companion.withDependency
 import com.odtheking.odin.clickgui.settings.impl.BooleanSetting
@@ -17,10 +17,10 @@ import com.odtheking.odin.utils.render.textDim
 import com.odtheking.odin.utils.skyblock.dungeon.DungeonUtils
 import com.odtheking.odin.utils.skyblock.dungeon.M7Phases
 import com.odtheking.odin.utils.toFixed
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.DragonCheck
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.WitherDragonState
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.WitherDragonsEnum
-import net.kumajunk.libleaddon.features.impl.floor7.dragprio.handleSpawnPacket
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.DragonCheck
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.WitherDragonState
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.WitherDragonsEnum
+import net.kumajunk.libleaddon.features.impl.boss.dragprio.handleSpawnPacket
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
