@@ -31,6 +31,7 @@ object AutoRefill : Module(
         default = true,
         desc = "Automatically refills ender pearls"
     )
+
     private var pearlThreshold = +NumberSetting(
         name = "Pearl Threshold",
         default = 8,
@@ -44,6 +45,7 @@ object AutoRefill : Module(
         default = false,
         desc = "Automatically refills superboom TNT"
     )
+
     private var superboomThreshold = +NumberSetting(
         name = "Superboom Threshold",
         default = 32,
@@ -55,11 +57,15 @@ object AutoRefill : Module(
     private var tick = 0
     private var isDead = false
 
+    private var pearlLastRefillTime = 0L
+    private var superboomLastRefillTime = 0L
+
+    private const val REFILL_COOLDOWN = 5000L
+
     init {
         on<TickEvent.End> {
-
-
             tick++
+
             if (tick % 10 != 0) return@on
             if (!LocationUtils.isInSkyblock || LocationUtils.currentArea == Island.Rift) return@on
             if (mc.screen != null) return@on
@@ -69,22 +75,44 @@ object AutoRefill : Module(
             if (isDead) return@on
 
             if (isPearlRefill.value) {
-                val pearlCount = mc.player?.inventory?.find { it?.itemId == "ENDER_PEARL" }?.count ?: 0
-                if (pearlCount == 0 && !isZeroRefill.value) return@on
-                if (pearlCount < pearlThreshold.value) {
-                    sendCommand("gfs ender_pearl ${16 - pearlCount}")
-                    addonMessage("§aAuto Refilled Ender Pearls!")
-                    return@on
+                val pearlCount = mc.player?.inventory?.find {
+                    it.itemId == "ENDER_PEARL"
+                }?.count ?: 0
+
+                if (pearlCount != 0 || isZeroRefill.value) {
+                    val now = System.currentTimeMillis()
+
+                    if (
+                        pearlCount < pearlThreshold.value &&
+                        now - pearlLastRefillTime >= REFILL_COOLDOWN
+                    ) {
+                        sendCommand("gfs ender_pearl ${16 - pearlCount}")
+                        addonMessage("§aAuto Refilled Ender Pearls!")
+
+                        pearlLastRefillTime = now
+                        return@on
+                    }
                 }
             }
 
             if (isSuperboomRefill.value) {
-                val superboomCount = mc.player?.inventory?.find { it?.itemId == "SUPERBOOM_TNT" }?.count ?: 0
-                if (superboomCount == 0 && !isZeroRefill.value) return@on
-                if (superboomCount < superboomThreshold.value) {
-                    sendCommand("gfs superboom_tnt ${64 - superboomCount}")
-                    addonMessage("§aAuto Refilled Superboom TNT!")
-                    return@on
+                val superboomCount = mc.player?.inventory?.find {
+                    it.itemId == "SUPERBOOM_TNT"
+                }?.count ?: 0
+
+                if (superboomCount != 0 || isZeroRefill.value) {
+                    val now = System.currentTimeMillis()
+
+                    if (
+                        superboomCount < superboomThreshold.value &&
+                        now - superboomLastRefillTime >= REFILL_COOLDOWN
+                    ) {
+                        sendCommand("gfs superboom_tnt ${64 - superboomCount}")
+                        addonMessage("§aAuto Refilled Superboom TNT!")
+
+                        superboomLastRefillTime = now
+                        return@on
+                    }
                 }
             }
 
@@ -105,6 +133,7 @@ object AutoRefill : Module(
                     !msg.contains(":")
                 ) {
                     val split = msg.split(" ")
+
                     if (split.getOrNull(2) == "You") {
                         isDead = true
                     }
@@ -116,6 +145,7 @@ object AutoRefill : Module(
     private fun checkHaunt() {
         val player = mc.player ?: return
         val stack = player.inventory.getItem(0)
+
         if (stack.isEmpty) return
 
         val name = stack.displayName.string.noControlCodes
